@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MazeProg - Self Practice Session</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .self-practice-page { max-width: 850px; margin: 0 auto; padding: 24px; }
+    .practice-heading { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin: 18px 0; }
+    .practice-topic { color: #7dd3fc; font-size: 13px; font-weight: 600; }
+    .practice-meta { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: #cbd5e1; font-size: 13px; padding: 12px 0; border-top: 1px solid #334155; border-bottom: 1px solid #334155; }
+    .practice-progress { height: 6px; margin-top: 10px; overflow: hidden; border-radius: 4px; background: #1e293b; }
+    .practice-progress > div { width: 0; height: 100%; background: #38bdf8; transition: width 0.25s ease; }
+    .practice-question { margin: 22px 0 12px; font-size: 20px; font-weight: 700; }
+    .practice-code { white-space: pre-wrap; padding: 14px; margin: 12px 0 18px; border: 1px solid #334155; border-radius: 6px; background: #030712; color: #bae6fd; font-family: monospace; }
+    .practice-hint { display: none; padding: 12px; margin-top: 14px; border-left: 3px solid #f59e0b; background: rgba(245, 158, 11, 0.08); color: #fde68a; font-size: 13px; }
+    .practice-feedback { min-height: 26px; margin-top: 14px; font-weight: 700; }
+    .practice-feedback.correct { color: #6ee7b7; }
+    .practice-feedback.incorrect { color: #fca5a5; }
+    .practice-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 22px; }
+    .practice-summary { padding: 18px 0; border-top: 1px solid #334155; color: #cbd5e1; }
+    .practice-summary strong { color: #6ee7b7; }
+  </style>
+</head>
+<body>
+  <main class="self-practice-page">
+    <button id="backToDashboard" class="btn btn-outline" type="button">&larr; Dashboard</button>
+
+    <div class="practice-heading">
+      <div>
+        <div class="practice-topic" id="practiceTopic">SELF PRACTICE</div>
+        <h1 id="practiceTitle" style="margin: 6px 0;">Self Practice Session</h1>
+        <p id="practiceEvidence" style="margin: 0; color: #94a3b8;"></p>
+      </div>
+    </div>
+
+    <div class="practice-meta">
+      <span id="questionCounter">Loading questions...</span>
+      <span id="difficultyLabel">Difficulty: Easy</span>
+      <span id="streakLabel">Correct streak: 0</span>
+    </div>
+    <div class="practice-progress" role="progressbar" aria-label="Practice progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div id="practiceProgressBar"></div>
+    </div>
+    <p id="practiceProgressText" style="margin: 8px 0 0; color: #94a3b8; font-size: 12px;">0 questions completed</p>
+
+    <p id="practiceQuestion" class="practice-question"></p>
+    <pre id="practiceCode" class="practice-code" hidden></pre>
+    <div id="practiceMechanism"></div>
+    <div id="practiceHint" class="practice-hint"></div>
+    <div id="practiceFeedback" class="practice-feedback" role="status" aria-live="polite"></div>
+    <div class="practice-footer">
+      <span id="adaptiveMessage" style="color: #94a3b8; font-size: 13px;"></span>
+      <button id="continuePractice" class="btn btn-primary" type="button" hidden>Continue</button>
+    </div>
+    <section id="practiceSummary" class="practice-summary" hidden></section>
+  </main>
+
+  <script type="module" src="js/student-self-practice-session.js"></script>
+</body>
+</html>

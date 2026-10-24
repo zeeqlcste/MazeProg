@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MazeProg - Lecturer Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .progress-overview { margin-top: 24px; padding: 20px; border-top: 1px solid #334155; }
+    .progress-overview-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+    .progress-summary { display: flex; gap: 20px; flex-wrap: wrap; color: #cbd5e1; font-size: 13px; }
+    .progress-table-wrap { overflow-x: auto; }
+    .progress-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    .progress-table th, .progress-table td { padding: 10px 12px; border-bottom: 1px solid #334155; vertical-align: top; }
+    .progress-table th { color: #94a3b8; font-weight: 600; }
+    .progress-attention { color: #fca5a5; }
+    .progress-ok { color: #6ee7b7; }
+    .profile-nav-btn { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 14px; border-radius: 20px; background: #1e293b; border: 1px solid #334155; transition: all 0.2s ease; }
+    .profile-nav-btn:hover { background: #334155; border-color: #3b82f6; }
+    .profile-avatar-img, .profile-avatar-fallback { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #3b82f6; }
+    .profile-avatar-img { object-fit: cover; }
+    .profile-avatar-img[hidden], .profile-avatar-fallback[hidden] { display: none; }
+    .profile-avatar-fallback { display: grid; place-items: center; background: #0f172a; color: #bae6fd; font-size: 12px; font-weight: 700; }
+    .profile-name-text { color: #f8fafc; font-size: 14px; font-weight: 600; }
+    @media (max-width: 640px) { .progress-overview { padding: 16px 0; } .progress-table { min-width: 620px; } }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a class="site-brand" href="lecturer-dashboard.html" aria-label="MazeProg lecturer dashboard"><img src="assets/mazeprog-logo.png" alt="MazeProg"></a>
+    <button id="profileBtn" class="profile-nav-btn" type="button" title="View and edit lecturer profile">
+      <img id="lecturerAvatar" class="profile-avatar-img" alt="Lecturer profile photo" hidden>
+      <span id="lecturerAvatarFallback" class="profile-avatar-fallback">L</span>
+      <span id="lecturerNameDisplay" class="profile-name-text">Lecturer</span>
+    </button>
+  </nav>
+
+  <div class="dashboard-layout">
+    <div class="dashboard-header">
+      <h2>Lecturer Dashboard</h2>
+    </div>
+
+    <div class="card-grid">
+      <div class="dash-card">
+        <h3>Create Game Session</h3>
+        <p>Generate a new Session PIN for students to join interactive maze challenges.</p>
+        <br>
+        <button id="createSessionBtn" class="btn btn-primary" style="width: 100%;">Create New Session</button>
+      </div>
+
+      <div class="dash-card">
+        <h3>Question Bank</h3>
+        <p>Add, update, or manage questions and distractors for maze challenges.</p>
+        <br>
+        <button id="manageQuestionsBtn" class="btn btn-outline" style="width: 100%;">Manage Questions</button>
+      </div>
+
+      <div class="dash-card">
+        <h3>Student Analytics</h3>
+        <p>View Misconception Logs and student performance stats in real-time.</p>
+        <br>
+        <button id="viewAnalyticsBtn" class="btn btn-outline" style="width: 100%;">View Analytics</button>
+      </div>
+    </div>
+
+    <section id="progressOverview" class="progress-overview" aria-live="polite">
+      <div class="progress-overview-header">
+        <div>
+          <h3 style="margin: 0 0 6px;">Student Progress</h3>
+          <div id="progressSummary" class="progress-summary">Loading progress...</div>
+        </div>
+        <button id="openDetailedAnalyticsBtn" class="btn btn-outline" type="button">View detailed analytics</button>
+      </div>
+      <div class="progress-table-wrap">
+        <table class="progress-table">
+          <thead><tr><th>Student</th><th>Progress</th><th>Score / XP</th><th>Last activity</th><th>Topic to review</th></tr></thead>
+          <tbody id="progressStudentsBody"><tr><td colspan="5">Loading student progress...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/lecturer-dashboard.js"></script>
+</body>
+</html>

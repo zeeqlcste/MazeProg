@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MazeProg - Create Session</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Radio Option Cards Styling */
+    .session-type-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .type-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .type-card:hover {
+      border-color: #38bdf8;
+    }
+    .type-card input[type="radio"] {
+      display: none;
+    }
+    .type-card.active {
+      border-color: #38bdf8;
+      background: #1e3a8a;
+    }
+  </style>
+</head>
+<body class="lecturer-page create-session-page">
+  <div class="dashboard-container lecturer-container" style="padding: 20px; max-width: 1250px; margin: 0 auto;">
+        <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div>
+            <a class="site-brand site-brand--compact" href="lecturer-dashboard.html" aria-label="MazeProg lecturer dashboard"><img src="assets/mazeprog-logo.png" alt="MazeProg"></a>
+        <button onclick="window.location.href='lecturer-dashboard.html'" class="btn btn-outline" style="margin-bottom: 10px;">&larr; Back to Dashboard</button>
+        <h1>Create Session</h1>
+      </div>
+    </header>
+
+    <div class="create-session-layout" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px;">
+
+      <!-- Session Form -->
+      <div class="surface-panel session-form-panel" style="background: #1e293b; padding: 20px; border-radius: 8px; border: 1px solid #334155;">
+        <h2 style="color: #38bdf8; margin-bottom: 15px;">New Session Setup</h2>
+
+        <form id="createSessionForm">
+          
+          <!-- PILIHAN MOD: GAME ATAU WHITEBOARD -->
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #38bdf8;">Select Session Type:</label>
+            <div class="session-type-group">
+              <label class="type-card active" id="gameModeCard">
+                <input type="radio" name="sessionType" value="game" checked>
+                <div style="font-size: 20px;">🎮</div>
+                <div style="font-size: 13px; font-weight: bold; margin-top: 2px;">Game Mode</div>
+              </label>
+
+              <label class="type-card" id="whiteboardModeCard">
+                <input type="radio" name="sessionType" value="whiteboard">
+                <div style="font-size: 20px;">🎨</div>
+                <div style="font-size: 13px; font-weight: bold; margin-top: 2px;">Whiteboard Mode</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Session Name / Class</label>
+            <input type="text" id="sessionTitle" required placeholder="E.g., CS110 Class - Final Sprint" style="width: 100%; padding: 8px; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+          </div>
+
+          <!-- Tick Box Section for Question Sets (Sembunyi jika Whiteboard) -->
+          <div class="form-group game-only-field" id="qSetGroup" style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #38bdf8;">Select Question Sets (Tick to include):</label>
+            <div id="qSetContainer" style="max-height: 180px; overflow-y: auto; background: #0b1329; padding: 10px; border-radius: 6px; border: 1px solid #334155;">
+              <!-- Dynamic Checkboxes loaded via JS -->
+            </div>
+          </div>
+
+          <!-- Select Game Theme (Sembunyi jika Whiteboard) -->
+          <div class="form-group game-only-field" id="themeGroup" style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Game World / Theme</label>
+            <select id="selectTheme" style="width: 100%; padding: 8px; background: #0f172a; color: #38bdf8; border: 1px solid #38bdf8; border-radius: 4px; font-weight: bold;">
+              <option value="cyberpunk">🌃 Cyberpunk Neon City</option>
+              <option value="dungeon">🏰 Medieval Dungeon Escape</option>
+              <option value="galaxy">🚀 Deep Space Galaxy</option>
+              <option value="forest">🌲 Mystic Forest Adventure</option>
+            </select>
+          </div>
+
+          <!-- Generated PIN Preview -->
+          <div class="pin-preview" style="background: #0f172a; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 15px; border: 1px dashed #38bdf8;">
+            <span style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Generated Session PIN</span>
+            <div id="pinDisplay" style="font-size: 30px; font-weight: bold; color: #10b981; letter-spacing: 4px;">------</div>
+            <button type="button" id="reGenPinBtn" style="background: none; border: none; color: #38bdf8; cursor: pointer; font-size: 11px;">🎲 Regenerate PIN</button>
+          </div>
+
+          <button type="submit" id="submitSessionBtn" class="btn btn-primary" style="width: 100%; padding: 10px; font-weight: bold;">
+            🚀 Launch Game Session
+          </button>
+        </form>
+      </div>
+
+      <!-- Active Sessions List -->
+      <div class="active-sessions-panel">
+        <h2 style="color: #38bdf8; margin-bottom: 15px;">Active Sessions</h2>
+        <div id="activeSessionsList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal View Details for Question Set -->
+  <div id="viewDetailModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 550px; max-height: 80vh; overflow-y: auto; background: #1e293b; color: #fff; padding: 20px; border-radius: 8px;">
+      <span class="close-btn" id="closeDetailModalBtn" style="float: right; cursor: pointer; font-size: 20px;">&times;</span>
+      <h2 id="detailTitle" style="color: #38bdf8; margin-bottom: 5px;">-</h2>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 15px; font-size: 12px; color: #94a3b8;">
+        <span id="detailBadge" style="background: #0284c7; color:#fff; padding: 2px 6px; border-radius: 4px;">-</span>
+        <span>Difficulty: <strong id="detailDifficulty" style="color: #fff;">-</strong></span>
+        <span>Publisher: <strong id="detailPublisher" style="color: #fff;">-</strong></span>
+      </div>
+
+      <hr style="border: 0.5px solid #334155; margin-bottom: 12px;">
+
+      <h4 style="margin-bottom: 10px;">Questions Breakdown:</h4>
+      <div id="detailQuestionsList"></div>
+    </div>
+  </div>
+
+  <!-- LOGIK UI TUKAR MOD DENGAN SCRIPT -->
+  <script style="display:none;">
+    // UI Logic toggle untuk Game vs Whiteboard
+    document.querySelectorAll('input[name="sessionType"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const type = e.target.value;
+        const qGroup = document.getElementById('qSetGroup');
+        const themeGroup = document.getElementById('themeGroup');
+        const submitBtn = document.getElementById('submitSessionBtn');
+        const gameCard = document.getElementById('gameModeCard');
+        const wbCard = document.getElementById('whiteboardModeCard');
+
+        if (type === 'whiteboard') {
+          qGroup.style.display = 'none';
+          themeGroup.style.display = 'none';
+          submitBtn.innerHTML = '🎨 Launch Whiteboard Session';
+          gameCard.classList.remove('active');
+          wbCard.classList.add('active');
+        } else {
+          qGroup.style.display = 'block';
+          themeGroup.style.display = 'block';
+          submitBtn.innerHTML = '🚀 Launch Game Session';
+          wbCard.classList.remove('active');
+          gameCard.classList.add('active');
+        }
+      });
+    });
+  </script>
+
+  <script type="module" src="js/create-game-session.js"></script>
+</body>
+</html>

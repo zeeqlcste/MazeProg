@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MazeProg - Student Analytics</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .analytics-page { max-width: 1180px; margin: 0 auto; padding: 24px; }
+    .analytics-header, .analytics-filters { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .analytics-header { align-items: center; margin-bottom: 24px; }
+    .analytics-filters { padding: 16px 0; border-top: 1px solid #334155; border-bottom: 1px solid #334155; margin-bottom: 20px; }
+    .analytics-filters label { display: grid; gap: 6px; color: #94a3b8; font-size: 12px; min-width: 220px; }
+    .analytics-filters select { background: #0f172a; color: #f8fafc; border: 1px solid #475569; border-radius: 5px; padding: 9px 10px; }
+    .analytics-metrics { display: flex; gap: 24px; flex-wrap: wrap; margin: 16px 0 24px; color: #cbd5e1; }
+    .analytics-metrics strong { color: #f8fafc; font-size: 18px; margin-right: 5px; }
+    .analytics-section { margin: 24px 0; }
+    .analytics-section h2 { font-size: 17px; margin-bottom: 12px; }
+    .analytics-table-wrap { overflow-x: auto; }
+    .analytics-table { width: 100%; border-collapse: collapse; min-width: 650px; text-align: left; font-size: 13px; }
+    .analytics-table th, .analytics-table td { border-bottom: 1px solid #334155; padding: 10px 12px; vertical-align: top; }
+    .analytics-table th { color: #94a3b8; font-weight: 600; }
+    .attention-text { color: #fca5a5; }
+    .positive-text { color: #6ee7b7; }
+    .recommendation-list { display: grid; gap: 8px; }
+    .recommendation-row { border-left: 3px solid #f59e0b; padding: 8px 12px; background: rgba(245, 158, 11, 0.08); font-size: 13px; }
+    .empty-state { color: #94a3b8; padding: 14px 0; font-size: 13px; }
+    @media (max-width: 640px) { .analytics-page { padding: 16px; } }
+  </style>
+</head>
+<body>
+  <main class="analytics-page">
+    <header class="analytics-header">
+      <div>
+        <a class="site-brand site-brand--compact" href="lecturer-dashboard.html" aria-label="MazeProg lecturer dashboard"><img src="assets/mazeprog-logo.png" alt="MazeProg"></a>
+        <button class="btn btn-outline" type="button" onclick="window.location.href='lecturer-dashboard.html'">&larr; Dashboard</button>
+        <h1 style="margin: 16px 0 4px;">Student Analytics</h1>
+        <p style="color: #94a3b8; margin: 0;">Student progress and topic performance across your game sessions.</p>
+      </div>
+    </header>
+
+    <section class="analytics-filters" aria-label="Analytics filters">
+      <label>Game session
+        <select id="sessionFilter"><option value="all">All my game sessions</option></select>
+      </label>
+      <label>Student
+        <select id="studentFilter"><option value="all">All students</option></select>
+      </label>
+    </section>
+
+    <div id="analyticsMetrics" class="analytics-metrics" aria-live="polite"></div>
+
+    <section class="analytics-section">
+      <h2>Student progress</h2>
+      <div class="analytics-table-wrap">
+        <table class="analytics-table">
+          <thead><tr><th>Student</th><th>Session</th><th>Session date</th><th>Progress</th><th>Attempts</th><th>Score</th><th>Status</th></tr></thead>
+          <tbody id="studentProgressBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="analytics-section">
+      <h2>Topic performance</h2>
+      <div class="analytics-chart-wrap" style="max-width: 700px; margin: 0 auto 24px; background: #161522; border: 1px solid #334155; border-radius: 10px; padding: 16px;">
+        <canvas id="topicChart"></canvas>
+      </div>
+      <p style="color: #94a3b8; font-size: 12px; margin: 0 0 16px; text-align: center;">Klik mana-mana bar untuk butiran pelajar dan butang latihan adaptif.</p>
+      <div class="analytics-table-wrap">
+        <table class="analytics-table">
+          <thead><tr><th>C++ topic</th><th>Attempts</th><th>Correct</th><th>Incorrect</th><th>Accuracy</th><th>Signal</th></tr></thead>
+          <tbody id="topicPerformanceBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="analytics-section">
+      <h2>Learning recommendations</h2>
+      <div id="recommendations" class="recommendation-list"></div>
+    </section>
+
+    <section class="analytics-section">
+      <h2>Recent incorrect answers</h2>
+      <div class="analytics-table-wrap">
+        <table class="analytics-table">
+          <thead><tr><th>Student</th><th>Session</th><th>Topic</th><th>Question</th><th>Answer / event</th><th>When</th></tr></thead>
+          <tbody id="wrongAnswersBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Topic detail popup -->
+    <div id="topicDetailModal" class="modal" style="display: none;">
+      <div class="modal-content" style="max-width: 560px; background: #1e293b; color: #fff; padding: 20px; border-radius: 10px; border: 1px solid #334155;">
+        <span id="closeTopicDetailModal" style="float: right; cursor: pointer; font-size: 24px; color: #94a3b8;">&times;</span>
+        <h2 id="detailModalTopic" style="color: #f8fafc; margin: 0 0 12px;">Topic</h2>
+        <div id="detailModalStats" style="font-size: 13px; color: #cbd5e1; margin-bottom: 14px;"></div>
+        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">Pelajar yang memerlukan perhatian pada topik ini:</div>
+        <div id="detailModalStudents" style="margin-bottom: 14px; max-height: 260px; overflow-y: auto; border: 1px solid #334155; border-radius: 6px;"></div>
+        <button id="detailModalAssign" class="btn btn-primary" style="width: 100%; display: none;">Assign adaptive practice to all listed students</button>
+      </div>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="js/lecturer-analytics.js"></script>
+</body>
+</html>

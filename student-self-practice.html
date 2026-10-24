@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MazeProg - Self Practice</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .self-practice-page { max-width: 850px; margin: 0 auto; padding: 24px; }
+    .self-practice-heading { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin: 18px 0; }
+    .self-practice-topic { color: #7dd3fc; font-size: 13px; font-weight: 600; }
+    .selection-card { background: #0b1329; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+    .selection-card h2 { margin: 0 0 16px; color: #f8fafc; font-size: 22px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 13px; font-weight: 600; }
+    .select-box { width: 100%; padding: 12px 14px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 8px; font-size: 15px; }
+    .select-box:focus { outline: none; border-color: #38bdf8; }
+    .mechanism-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 12px; }
+    .mech-card { border: 1px solid #334155; border-radius: 8px; padding: 14px; text-align: center; cursor: pointer; transition: all 0.2s; background: #0f172a; }
+    .mech-card:hover { border-color: #38bdf8; background: #111827; }
+    .mech-card.selected { border-color: #10b981; background: #064e3b; }
+    .mech-icon { font-size: 28px; margin-bottom: 6px; display: block; }
+    .mech-name { font-weight: 600; color: #f8fafc; font-size: 14px; }
+    .mech-desc { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+    .btn-start { width: 100%; padding: 14px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 20px; }
+    .btn-start:hover { background: #059669; }
+    .btn-start:disabled { opacity: 0.5; cursor: not-allowed; }
+    .back-btn { margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <main class="self-practice-page">
+    <button id="backToDashboard" class="btn btn-outline back-btn">&larr; Dashboard</button>
+
+    <div class="self-practice-heading">
+      <div>
+        <div class="self-practice-topic" id="selfPracticeTopic">SELF PRACTICE</div>
+        <h1 style="margin: 6px 0;">Pilih Topik &amp; Tingkat</h1>
+        <p style="margin: 0; color: #94a3b8;">Latihan swa mandiri — pilih topik, kesukaran, dan jenis soalan.</p>
+      </div>
+    </div>
+
+    <div class="selection-card">
+      <h2>🎯 Konfigurasi Latihan</h2>
+
+      <div class="form-group">
+        <label>Topik Pengaturcaraan</label>
+        <select id="selectTopic" class="select-box">
+          <option value="C++">C++</option>
+          <option value="Python">Python</option>
+          <option value="JavaScript">JavaScript</option>
+          <option value="Java">Java</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Tingkat Kesukaran</label>
+        <select id="selectDifficulty" class="select-box">
+          <option value="easy">Mudah (Easy)</option>
+          <option value="medium">Sederhana (Medium)</option>
+          <option value="hard">Sukar (Hard)</option>
+          <option value="mixed">Campuran (Mixed)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Jenis Soalan</label>
+        <div class="mechanism-grid">
+          <div class="mech-card selected" data-mech="mcq">
+            <span class="mech-icon">📝</span>
+            <div class="mech-name">MCQ</div>
+            <div class="mech-desc">Pilihan berganda</div>
+            <input type="radio" name="mechType" value="mcq" checked style="display:none;">
+          </div>
+          <div class="mech-card" data-mech="bug">
+            <span class="mech-icon">🐛</span>
+            <div class="mech-name">Bug Sniper</div>
+            <div class="mech-desc">Cari ralat kod</div>
+            <input type="radio" name="mechType" value="bug" style="display:none;">
+          </div>
+          <div class="mech-card" data-mech="dragdrop">
+            <span class="mech-icon">🔄</span>
+            <div class="mech-name">Drag &amp; Drop</div>
+            <div class="mech-desc">Susun semula kod</div>
+            <input type="radio" name="mechType" value="dragdrop" style="display:none;">
+          </div>
+          <div class="mech-card" data-mech="catch">
+            <span class="mech-icon">🧺</span>
+            <div class="mech-name">Catch &amp; Collect</div>
+            <div class="mech-desc">Tangkap item betul</div>
+            <input type="radio" name="mechType" value="catch" style="display:none;">
+          </div>
+        </div>
+      </div>
+
+      <button id="startSelfPractice" class="btn-start">Mula Latihan</button>
+    </div>
+  </main>
+
+  <script type="module" src="js/student-self-practice.js"></script>
+</body>
+</html>

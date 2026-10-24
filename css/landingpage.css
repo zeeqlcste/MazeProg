@@ -1,0 +1,247 @@
+/* ==========================================================================
+   MazeProg System — Landing Page Styles
+   Modern, attractive landing page with glassmorphism, gradients,
+   subtle animations and a maze-inspired aesthetic.
+   ========================================================================== */
+
+/* Design tokens */
+:root {
+  --bg: #0f172a;
+  --bg-secondary: #1e293b;
+  --surface: rgba(30, 41, 59, 0.7);
+  --surface-border: rgba(255, 255, 255, 0.08);
+  --text: #f8fafc;
+  --text-muted: #c4b5fd;
+  --primary: #a855f7;
+  --primary-hover: #7e22ce;
+  --accent: #c084fc;
+  --accent-glow: rgba(192, 132, 252, 0.35);
+  --success: #86efac;
+  --radius-md: 14px;
+  --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Background ambience (animated mesh gradient) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(168, 85, 247, 0.14) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(192, 132, 252, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.10) 0%, transparent 35%);
+  background-size: 200% 200%;
+  animation: mesh-move 18s ease infinite;
+}
+@keyframes mesh-move {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: rgba(30, 41, 59, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--surface-border);
+  transition: var(--transition);
+}
+.navbar.scrolled {
+  background: rgba(30, 41, 59, 0.9);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+.site-brand:hover { transform: translateY(-2px); }
+.site-brand img {
+  display: block;
+  width: 76px;
+  height: 58px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.35));
+}
+.nav-links { display: flex; gap: 1rem; align-items: center; }
+
+/* Buttons */
+.btn {
+  padding: 0.7rem 1.5rem;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition);
+  display: inline-block;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+.btn-primary {
+  background-color: var(--primary);
+  color: #022c22;
+  box-shadow: 0 0 0 rgba(56, 189, 248, 0);
+}
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  color: #022c22;
+  box-shadow: 0 0 20px var(--accent-glow);
+  transform: translateY(-2px);
+}
+.btn-primary:active { transform: translateY(0); }
+.btn-outline {
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  background: transparent;
+}
+.btn-outline:hover {
+  background-color: var(--primary);
+  color: #022c22;
+}
+.btn-lg { padding: 0.95rem 2.2rem; font-size: 1.1rem; }
+/* Hero Section */
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 1rem;
+  min-height: calc(100vh - 80px);
+  max-height: 100vh;
+  overflow: hidden;
+}
+.hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 900px;
+  padding: 3rem 1rem;
+  animation: fade-up 1s ease both;
+}
+.hero h1 {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #f8fafc 0%, #a855f7 50%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
+}
+.hero p {
+  color: var(--text-muted);
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  margin-bottom: 2.5rem;
+  max-width: 650px;
+  line-height: 1.7;
+  animation: fade-up 1.2s ease both;
+}
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fade-up 1.4s ease both;
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Liquid Ether canvas container (positioned behind hero content) */
+.liquid-ether-hero {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+.liquid-hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.35) 0%, rgba(15, 23, 42, 0.85) 70%, #0f172a 100%);
+  pointer-events: none;
+}
+
+/* Decorative floating maze nodes (pure CSS) */
+.floating-node {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: 0.15;
+  filter: blur(28px);
+  animation: float-node 10s ease-in-out infinite;
+  z-index: 0;
+}
+.floating-node.n1 {
+  width: 420px; height: 420px;
+  top: -120px; left: -120px;
+  background: #a855f7;
+  animation-duration: 14s; animation-delay: 0s;
+}
+.floating-node.n2 {
+  width: 360px; height: 360px;
+  bottom: -100px; right: -100px;
+  background: #c084fc;
+  animation-duration: 16s; animation-delay: -4s;
+}
+.floating-node.n3 {
+  width: 260px; height: 260px;
+  top: 35%; left: 55%;
+  background: #ec4899;
+  animation-duration: 12s; animation-delay: -2s;
+}
+@keyframes float-node {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.05); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar { padding: 1rem 1.5rem; }
+  .hero { min-height: calc(100vh - 64px); }
+  .hero-content { padding: 2.5rem 1rem; }
+  .hero-actions { flex-direction: column; align-items: center; }
+  .btn-lg { width: 100%; max-width: 260px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body::before, .floating-node, .hero h1, .hero p, .hero-actions {
+    animation: none !important; transition: none !important;
+  }
+  .hero h1, .hero p, .hero-actions { opacity: 1; transform: none; }
+}

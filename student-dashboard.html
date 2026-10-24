@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MazeProg - Student Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Styling Nav Profil Pelajar */
+    .profile-nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      transition: all 0.2s ease;
+    }
+    .profile-nav-btn:hover {
+      background: #334155;
+      border-color: #3b82f6;
+    }
+    .profile-avatar-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #3b82f6;
+    }
+    .profile-name-text {
+      color: #f8fafc;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .learning-section { margin-top: 24px; display: grid; gap: 18px; }
+    .learning-panel { padding: 18px 0; border-top: 1px solid #334155; }
+    .learning-panel h3 { margin: 0 0 12px; }
+    .topic-mastery-list, .practice-assignment-list { display: grid; gap: 8px; }
+    .topic-mastery-row, .practice-assignment-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 12px; background: #111827; border: 1px solid #334155; border-radius: 6px; }
+    .mastery-state { color: #bae6fd; font-size: 12px; }
+    .practice-evidence { color: #94a3b8; font-size: 12px; margin-top: 4px; }
+    @media (max-width: 640px) { .learning-panel { padding: 16px 0; } }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a class="site-brand" href="student-dashboard.html" aria-label="MazeProg student dashboard"><img src="assets/mazeprog-logo.png" alt="MazeProg"></a>
+    
+    <!-- Profil Pelajar: Memaparkan Nama User & Avatar -->
+    <div id="profileBtn" class="profile-nav-btn" title="Klik untuk lihat & kemaskini profil">
+      <img id="userAvatar" src="https://via.placeholder.com/32" alt="Profile" class="profile-avatar-img">
+      <span id="userNameDisplay" class="profile-name-text">...</span>
+    </div>
+  </nav>
+
+  <div class="dashboard-layout">
+    <div class="dashboard-header">
+      <h2>Welcome to Student Dashboard</h2>
+    </div>
+
+    <div class="card-grid">
+      <div class="dash-card">
+        <h3>Join Class Session</h3>
+        <p>Enter the Session PIN provided by your lecturer to join a live maze challenge.</p>
+        <br>
+        <input type="text" id="sessionPinInput" placeholder="Session PIN (e.g., 123456)" style="width:100%; padding: 0.5rem; margin-bottom:0.5rem; background:#0f172a; color:white; border:1px solid #334155; border-radius:4px;">
+        <button id="joinSessionBtn" class="btn btn-primary" style="width: 100%;">Join Session</button>
+      </div>
+
+      <div class="dash-card">
+        <h3>Solo Practice Mode</h3>
+        <p>Select a programming topic and level to sharpen your logic skills independently.</p>
+        <br>
+        <button id="startSoloPractice" class="btn btn-outline" style="width: 100%;">Start Practice</button>
+      </div>
+    </div>
+
+    <section class="learning-section" aria-live="polite">
+      <div class="learning-panel">
+        <h3>My C++ topic progress</h3>
+        <div id="topicMasteryList" class="topic-mastery-list"><p>Loading topic progress...</p></div>
+      </div>
+      <div class="learning-panel">
+        <h3>Lecturer-assigned practice</h3>
+        <div id="practiceAssignmentList" class="practice-assignment-list"><p>Loading assigned practice...</p></div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="js/student-dashboard.js"></script>
+</body>
+</html>

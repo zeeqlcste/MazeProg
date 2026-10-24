@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ms">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Interactive Whiteboard Session</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+
+        header {
+            background: #1e293b;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pin-badge {
+            background: #0f172a;
+            color: #10b981;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 18px;
+            border: 1px solid #334155;
+        }
+
+        .user-badge {
+            background: #38bdf8;
+            color: #0f172a;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .exit-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .exit-btn:hover {
+            background: #dc2626;
+        }
+
+        /* WHITEBOARD */
+
+        .board-container {
+            flex: 1;
+            position: relative;
+            background: #020617;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+        }
+
+        /* TOOLBAR */
+
+        .toolbar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid #334155;
+
+            padding: 8px 16px;
+            border-radius: 30px;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+
+            backdrop-filter: blur(8px);
+
+            z-index: 10;
+        }
+
+        .tool-btn {
+            background: #0f172a;
+            color: #cbd5e1;
+
+            border: 1px solid #334155;
+
+            padding: 8px 12px;
+            border-radius: 20px;
+
+            cursor: pointer;
+
+            font-size: 13px;
+
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover,
+        .tool-btn.active {
+            background: #38bdf8;
+            color: #0f172a;
+            border-color: #38bdf8;
+            font-weight: bold;
+        }
+
+        .color-picker {
+            width: 30px;
+            height: 30px;
+
+            border: none;
+            border-radius: 50%;
+
+            cursor: pointer;
+            background: none;
+        }
+
+        /* STICKY NOTE */
+
+        .sticky-note {
+            position: absolute;
+
+            width: 150px;
+            min-height: 120px;
+
+            padding: 10px;
+
+            border-radius: 8px;
+
+            color: #0f172a;
+
+            font-size: 13px;
+
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+
+            cursor: move;
+
+            z-index: 5;
+        }
+
+        .sticky-note textarea {
+            width: 100%;
+            height: 80px;
+
+            background: transparent;
+            border: none;
+
+            resize: none;
+            outline: none;
+
+            font-size: 13px;
+
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .sticky-note .author {
+            font-size: 10px;
+            opacity: 0.7;
+            text-align: right;
+        }
+
+        .code-editor-panel {
+            position: absolute;
+            top: 78px;
+            right: 18px;
+            z-index: 12;
+            display: grid;
+            gap: 10px;
+            width: min(430px, calc(100% - 36px));
+            padding: 16px;
+            color: #e9f4ef;
+            background: rgba(15, 25, 21, 0.97);
+            border: 1px solid #476557;
+            border-radius: 8px;
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+        }
+
+        .code-editor-panel[hidden] { display: none; }
+        .code-editor-panel label { display: grid; gap: 5px; color: #aec0b5; font-size: 12px; }
+        .code-editor-panel input, .code-editor-panel select, .code-editor-panel textarea {
+            width: 100%;
+            padding: 9px 10px;
+            color: #edf4ef;
+            background: #0b1410;
+            border: 1px solid #35483e;
+            border-radius: 5px;
+            font: 13px 'Cascadia Code', Consolas, monospace;
+        }
+        .code-editor-panel textarea { min-height: 240px; resize: vertical; line-height: 1.55; tab-size: 4; }
+        .code-editor-heading { display: flex; align-items: center; justify-content: space-between; }
+
+        .shared-code-card {
+            position: absolute;
+            z-index: 4;
+            top: 84px;
+            left: 22px;
+            width: min(620px, calc(100% - 44px));
+            max-height: calc(100% - 110px);
+            overflow: auto;
+            color: #ecf5ef;
+            background: rgba(10, 17, 14, 0.95);
+            border: 1px solid rgba(96, 214, 174, 0.45);
+            border-radius: 8px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+        }
+
+        .shared-code-card[hidden] { display: none; }
+        .shared-code-card header { padding: 10px 14px; border-bottom: 1px solid #31453a; color: #d8b977; font-size: 12px; }
+        .shared-code-card pre { margin: 0; padding: 16px; overflow: auto; color: #d7f4e6; font: 15px/1.6 'Cascadia Code', Consolas, monospace; white-space: pre; }
+
+        .board-container { background-color: #09110e; background-image: linear-gradient(rgba(96, 214, 174, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(96, 214, 174, 0.045) 1px, transparent 1px); background-size: 28px 28px; }
+        .board-container canvas { background: transparent; }
+        body.projector-mode > header { display: none; }
+        body.projector-mode .toolbar { top: 10px; opacity: 0.32; transition: opacity 0.2s; }
+        body.projector-mode .toolbar:hover, body.projector-mode .toolbar:focus-within { opacity: 1; }
+        body.projector-mode .code-editor-panel { top: 58px; }
+        .projector-exit { position: fixed; right: 18px; bottom: 16px; z-index: 20; }
+        .projector-exit[hidden] { display: none; }
+
+        @media (max-width: 760px) {
+            .toolbar { left: 8px; right: 8px; justify-content: flex-start; overflow-x: auto; transform: none; border-radius: 8px; }
+            .code-editor-panel { top: 72px; right: 8px; width: calc(100% - 16px); }
+            .shared-code-card { top: 76px; left: 8px; width: calc(100% - 16px); }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- HEADER -->
+
+    <header>
+
+        <div class="header-info">
+
+            <a href="lecturer-dashboard.html" aria-label="MazeProg lecturer dashboard">
+                <img src="assets/mazeprog-logo.png" alt="MazeProg" style="display: block; width: 52px; height: 40px; object-fit: contain;">
+            </a>
+
+            <span class="pin-badge" id="displayPin">
+                PIN: ------
+            </span>
+
+            <h3 id="sessionTitleDisplay" style="font-size: 16px;">
+                Sesi Whiteboard Interaktif
+            </h3>
+
+            <span class="user-badge" id="roleBadge">
+                User
+            </span>
+
+        </div>
+
+        <button class="exit-btn" id="exitBtn">
+            Keluar Sesi
+        </button>
+
+    </header>
+
+
+    <!-- WHITEBOARD -->
+
+    <div class="board-container" id="boardContainer">
+
+        <!-- TOOLBAR -->
+
+        <div class="toolbar">
+
+            <button class="tool-btn active" id="penBtn">
+                ✏️ Pen
+            </button>
+
+            <button class="tool-btn" id="eraserBtn">
+                🧹 Pemadam
+            </button>
+
+            <button class="tool-btn" id="openCodeBtn" type="button">&lt;/&gt; Kongsi kod</button>
+            <button class="tool-btn" id="projectorBtn" type="button">Projector</button>
+
+            <input
+                type="color"
+                id="colorPicker"
+                class="color-picker"
+                value="#38bdf8"
+            >
+
+            <div
+                style="
+                    height: 20px;
+                    width: 1px;
+                    background: #334155;
+                    margin: 0 4px;
+                "
+            ></div>
+
+            <button class="tool-btn" id="addNoteBtn">
+                📝 Tambah Nota
+            </button>
+
+            <!-- LECTURER ONLY -->
+
+            <button
+                class="tool-btn"
+                id="clearBtn"
+                style="
+                    display: none;
+                    background: #7f1d1d;
+                    color: #fca5a5;
+                "
+            >
+                🗑️ Padam Semua
+            </button>
+
+        </div>
+
+
+        <!-- CANVAS -->
+
+        <canvas id="whiteboardCanvas"></canvas>
+
+        <section id="sharedCodeCard" class="shared-code-card" hidden aria-live="polite">
+            <header><span id="sharedCodeTitle">C++ code</span><span id="sharedCodeLanguage">C++</span></header>
+            <pre id="sharedCodeText"></pre>
+        </section>
+
+        <aside id="codeEditorPanel" class="code-editor-panel" hidden>
+            <div class="code-editor-heading">
+                <strong>Programming lecture code</strong>
+                <button id="closeCodeBtn" class="tool-btn" type="button" aria-label="Tutup editor kod">Close</button>
+            </div>
+            <label>Judul snippet<input id="codeTitleInput" type="text" value="C++ example" maxlength="80"></label>
+            <label>Bahasa
+                <select id="codeLanguageInput"><option>C++</option><option>C</option><option>Pseudocode</option></select>
+            </label>
+            <label>Kod<textarea id="codeInput" spellcheck="false" placeholder="#include &lt;iostream&gt;\nint main() {\n    // tulis contoh kod di sini\n}"></textarea></label>
+            <small id="codeSyncStatus" role="status" aria-live="polite">Perubahan kod akan dikongsi kepada student.</small>
+            <button id="publishCodeBtn" class="tool-btn active" type="button">Kongsi kod sekarang</button>
+        </aside>
+
+    </div>
+
+    <button id="exitProjectorBtn" class="tool-btn projector-exit" type="button" hidden>Exit projector</button>
+
+
+    <!-- LECTURER JAVASCRIPT -->
+
+    <script
+        type="module"
+        src="./js/lecturer-whiteboard.js"
+    ></script>
+
+</body>
+
+</html>

@@ -1,0 +1,125 @@
+/* ==========================================
+   MAZEPROG — UNIFIED PURPLE THEME SYSTEM
+   Synchronized across landing page + all inner pages
+   ========================================== */
+
+/* 0. ROYAL PURPLE (default unified theme) */
+body[data-theme="purple"] {
+  background-color: #0b0a14 !important;
+  color: #f3e8ff !important;
+  font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body[data-theme="purple"] .game-card,
+body[data-theme="purple"] .question-box {
+  background: linear-gradient(145deg, #1e1d2c, #161522) !important;
+  border: 2px solid #a855f7 !important;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
+  border-radius: 12px;
+}
+
+body[data-theme="purple"] .btn-theme {
+  background: #a855f7 !important;
+  color: #ffffff !important;
+  border: none;
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+}
+body[data-theme="purple"] .btn-theme:hover {
+  background: #c084fc !important;
+}
+
+/* ==========================================
+   1. CYBERPUNK NEON — PURPLE EDITION
+   ========================================== */
+body[data-theme="cyberpunk"] {
+  background-color: #0a001a !important;
+  color: #c084fc !important;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+body[data-theme="cyberpunk"] .game-card,
+body[data-theme="cyberpunk"] .question-box {
+  background: #140026 !important;
+  border: 2px solid #a855f7 !important;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+  border-radius: 8px;
+}
+
+body[data-theme="cyberpunk"] .btn-theme {
+  background: #a855f7 !important;
+  color: #000000 !important;
+  border: none;
+  box-shadow: 0 0 12px #a855f7;
+}
+
+/* ==========================================
+   2. MEDIEVAL DUNGEON — ROYAL PURPLE
+   ========================================== */
+body[data-theme="dungeon"] {
+  background-color: #14081e !important;
+  color: #e9d5ff !important;
+  font-family: 'Georgia', serif;
+}
+
+body[data-theme="dungeon"] .game-card,
+body[data-theme="dungeon"] .question-box {
+  background: #1d0f2a !important;
+  border: 2px solid #7e22ce !important;
+  box-shadow: inset 0 0 15px rgba(126, 34, 206, 0.4);
+  border-radius: 4px;
+}
+
+body[data-theme="dungeon"] .btn-theme {
+  background: #7e22ce !important;
+  color: #f3e8ff !important;
+  font-weight: bold;
+  border: 1px solid #a855f7;
+}
+
+/* ==========================================
+   3. DEEP SPACE GALAXY — PURPLE NEBULA
+   ========================================== */
+body[data-theme="galaxy"] {
+  background-color: #05040a !important;
+  color: #ede9fe !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body[data-theme="galaxy"] .game-card,
+body[data-theme="galaxy"] .question-box {
+  background: #0f091c !important;
+  border: 2px solid #c084fc !important;
+  box-shadow: 0 0 18px rgba(192, 132, 252, 0.4);
+  border-radius: 12px;
+}
+
+body[data-theme="galaxy"] .btn-theme {
+  background: #c084fc !important;
+  color: #0b0a14 !important;
+  border: none;
+}
+
+/* ==========================================
+   4. MYSTIC FOREST — PURPLE MYSTIQUE
+   ========================================== */
+body[data-theme="forest"] {
+  background-color: #0c0816 !important;
+  color: #f0abfc !important;
+  font-family: 'Trebuchet MS', sans-serif;
+}
+
+body[data-theme="forest"] .game-card,
+body[data-theme="forest"] .question-box {
+  background: #160f23 !important;
+  border: 2px solid #ec4899 !important;
+  box-shadow: 0 0 16px rgba(236, 72, 153, 0.35);
+  border-radius: 10px;
+}
+
+body[data-theme="forest"] .btn-theme {
+  background: #ec4899 !important;
+  color: #ffffff !important;
+  font-weight: bold;
+  border: none;
+  box-shadow: 0 0 12px rgba(236, 72, 153, 0.5);
+}

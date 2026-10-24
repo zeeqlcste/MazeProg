@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MazeProg - Question Bank</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Styling Tambahan untuk Form Dynamic Question Bank */
+    .question-card-item {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 15px;
+      position: relative;
+    }
+    .question-card-item .remove-q-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      color: #ef4444;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .form-input-style {
+      width: 100%;
+      padding: 8px 12px;
+      background: #1e293b;
+      color: #fff;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      outline: none;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+    .form-input-style:focus {
+      border-color: #3b82f6;
+    }
+    .block-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .remove-block-btn {
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 0 4px;
+    }
+    .remove-block-btn:hover {
+      color: #dc2626;
+    }
+  </style>
+</head>
+
+<body class="lecturer-page question-bank-page">
+
+  <div class="dashboard-container lecturer-container" style="padding: 20px;">
+
+    <!-- HEADER -->
+    <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div>
+        <a class="site-brand site-brand--compact" href="lecturer-dashboard.html" aria-label="MazeProg lecturer dashboard"><img src="assets/mazeprog-logo.png" alt="MazeProg"></a>
+        <button onclick="window.location.href='lecturer-dashboard.html'" class="btn btn-outline" style="margin-bottom: 10px;">
+          &larr; Back to Dashboard
+        </button>
+        <h1>C++ Question Bank</h1>
+      </div>
+
+      <button id="openModalBtn" class="btn btn-primary">
+        + Add New Question Set
+      </button>
+    </header>
+
+    <!-- QUESTION SET GRID -->
+    <main class="question-grid" id="questionGrid"></main>
+
+  </div>
+
+
+  <!-- ===================================================== -->
+  <!-- MODAL: ADD QUESTION SET -->
+  <!-- ===================================================== -->
+
+  <div id="questionModal" class="modal" style="display: none;">
+
+    <div class="modal-content" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
+
+      <span class="close-btn" id="closeModalBtn">&times;</span>
+
+      <h2>Add C++ Question Set</h2>
+
+      <form id="addQuestionForm">
+
+        <!-- QUESTION SET TITLE -->
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 13px; color: #94a3b8; margin-bottom: 5px;">Question Set Title</label>
+          <input type="text" id="qTitle" required placeholder="E.g., C++ Mixed Practice Set #1" class="form-input-style">
+        </div>
+
+        <!-- PUBLISHER -->
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 13px; color: #94a3b8; margin-bottom: 5px;">Published By (Publisher)</label>
+          <input type="text" id="qPublisher" placeholder="E.g., Dr. Azman (Leave empty for system default)" class="form-input-style">
+        </div>
+
+        <hr style="border: 0.5px solid #334155; margin: 15px 0;">
+
+        <!-- QUESTIONS -->
+        <h3>Questions List</h3>
+        <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
+          Each question can have its own C++ topic category, difficulty level, and game mechanism.
+        </p>
+
+        <!-- CONTAINER SOALAN DINAMIK -->
+        <div id="questionsContainer" style="margin-top: 15px;"></div>
+
+        <!-- BUTTON TAMBAH SOALAN -->
+        <button type="button" id="addQuestionBlockBtn" class="btn btn-outline" style="width: 100%; margin: 10px 0; border: 1px dashed #64748b;">
+          + Add Question
+        </button>
+
+        <!-- BUTTON SIMPAN -->
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+          Save to Question Bank
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- ===================================================== -->
+  <!-- MODAL: VIEW QUESTION SET DETAILS -->
+  <!-- ===================================================== -->
+
+  <div id="viewDetailModal" class="modal" style="display: none;">
+
+    <div class="modal-content" style="max-width: 650px; max-height: 80vh; overflow-y: auto;">
+
+      <span class="close-btn" id="closeDetailModalBtn">&times;</span>
+
+      <h2 id="detailTitle" style="color: #38bdf8; margin-bottom: 5px;">-</h2>
+
+      <!-- SET INFO -->
+      <div style="display: flex; gap: 10px; margin-bottom: 15px; font-size: 13px; color: #94a3b8; flex-wrap: wrap;">
+        <span class="card-badge" id="detailQuestionCount">0 Questions</span>
+        <span>
+          Publisher: <strong id="detailPublisher" style="color: #fff;">-</strong>
+        </span>
+      </div>
+
+      <hr style="border: 0.5px solid #334155; margin-bottom: 15px;">
+
+      <h3 style="margin-bottom: 10px;">Questions Breakdown:</h3>
+
+      <div id="detailQuestionsList"></div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ===================================================== -->
+  <!-- TEMPLATE: DRAG & DROP QUESTION BUILDER -->
+  <!-- ===================================================== -->
+
+  <template id="dragDropTemplate">
+    <div class="drag-drop-builder" style="margin-top: 10px;">
+      
+      <!-- INSTRUCTION -->
+      <div style="margin-bottom: 10px;">
+        <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 4px;">Instruction:</label>
+        <input type="text" class="q-instruction q-text-input form-input-style" placeholder="Instruction (e.g., Arrange code to output 'Hello World')" required>
+      </div>
+
+      <!-- CORRECT SEQUENCE BLOCKS -->
+      <div style="margin-bottom: 12px;">
+        <label style="font-size: 12px; color: #38bdf8; font-weight: bold; display: block; margin-bottom: 6px;">Code Blocks in CORRECT Sequence Order:</label>
+        <div class="correct-blocks-list"></div>
+        <button type="button" class="add-correct-block-btn btn btn-outline" style="font-size: 11px; padding: 4px 10px; margin-top: 6px;">
+          + Add Sequence Block
+        </button>
+      </div>
+
+      <!-- DISTRACTOR BLOCKS (OPTIONAL) -->
+      <div style="margin-bottom: 10px;">
+        <label style="font-size: 12px; color: #ef4444; font-weight: bold; display: block; margin-bottom: 6px;">Distractor Blocks (Wrong Options - Optional):</label>
+        <div class="distractor-blocks-list"></div>
+        <button type="button" class="add-distractor-block-btn btn btn-outline" style="font-size: 11px; padding: 4px 10px; margin-top: 6px;">
+          + Add Distractor Block
+        </button>
+      </div>
+
+    </div>
+  </template>
+
+
+  <!-- JAVASCRIPT MODULE -->
+  <script type="module" src="js/question-bank.js"></script>
+
+</body>
+
+</html>
