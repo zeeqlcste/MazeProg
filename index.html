@@ -3,36 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MazeProg System - Home</title>
+  <title>MazeProg System - Master C++ Through Gamification</title>
   <link rel="stylesheet" href="css/landingpage.css">
 </head>
 <body>
+  <!-- NAVBAR -->
   <nav class="navbar">
-    <a class="site-brand" href="index.html" aria-label="MazeProg home"><img src="assets/mazeprog-logo.png" alt="MazeProg"></a>
+    <a class="site-brand" href="index.html" aria-label="MazeProg home">
+      <img src="assets/mazeprog-logo.png" alt="MazeProg">
+    </a>
     <div class="nav-links">
       <a href="login.html" class="btn btn-outline">Login</a>
       <a href="register.html" class="btn btn-primary">Register</a>
     </div>
   </nav>
 
+  <!-- HERO SECTION -->
   <main class="hero">
-    <!-- LiquidEther canvas container (React component — see components/LiquidEther.jsx).
-         Requires a React build environment (Vite/CRA/Next.js) to render. -->
     <div class="liquid-ether-hero" id="liquidEtherRoot" aria-hidden="true"></div>
     <div class="liquid-hero-overlay"></div>
 
-    <!-- Decorative floating maze nodes (pure CSS ambience) -->
+    <!-- Floating Maze Nodes -->
     <div class="floating-node n1" aria-hidden="true"></div>
     <div class="floating-node n2" aria-hidden="true"></div>
     <div class="floating-node n3" aria-hidden="true"></div>
 
     <div class="hero-content">
-      <h1>Master Programming Through Mazes</h1>
-      <p>MazeProg System helps you understand programming logic and problem-solving interactively through gamification.</p>
+      <span class="badge-tag">⚡ Next-Gen C++ Learning Platform</span>
+      <h1>Level Up Your C++ Coding Skills Through Interactive Gamification</h1>
+      <p style="text-align: center; margin: 0 auto 32px auto; max-width: 650px;">
+        Say goodbye to boring C++ syntax lectures! <strong>MazeProg</strong> transforms complex programming concepts—like pointers, loops, and logic errors—into fast-paced arcade challenges.
+      </p>      
       <div class="hero-actions">
-        <a href="register.html" class="btn btn-primary btn-lg">Get Started</a>
+        <a href="register.html" class="btn btn-primary btn-lg">Start Coding Free 🚀</a>
+        <a href="#mechanisms" class="btn btn-outline btn-lg">Explore Game Modes</a>
       </div>
     </div>
   </main>
+
+  <!-- SECTION: WHY MAZEPROG -->
+  <section class="features-section">
+    <div class="container">
+      <h2 class="section-title">Why Learn C++ with <span>MazeProg</span>?</h2>
+      <p class="section-subtitle">Designed specifically for computer science students to boost problem-solving and speed up learning.</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎮</div>
+          <h3>Gamified Progression</h3>
+          <p>Earn XP, unlock achievement levels, build daily streaks, and watch your name climb the live leaderboard.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Real-Time Analytics</h3>
+          <p>Get instant performance feedback, speed bonuses, and track your topic mastery across every session.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧠</div>
+          <h3>Targeted Debugging</h3>
+          <p>Master syntax errors and edge cases directly through interactive code execution tasks.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: 4 GAME MECHANISMS -->
+  <section class="mechanisms-section" id="mechanisms">
+    <div class="container">
+      <h2 class="section-title">4 Battle-Tested <span>Game Mechanisms</span></h2>
+      <p class="section-subtitle">Master C++ programming rules through multiple dynamic challenge types.</p>
+
+      <div class="mechanisms-grid">
+        <!-- Mechanism 1: MCQ -->
+        <div class="mech-card">
+          <div class="mech-badge">Mode 1</div>
+          <div class="mech-icon">🎯</div>
+          <h3>Multiple Choice Questions</h3>
+          <p>Test your fundamental C++ knowledge under tight time constraints. Quick answers unlock higher <strong>Speed Bonuses</strong>!</p>
+
+          <ul class="mech-features">
+            <li>✅ Topic category filters</li>
+            <li>⏱️ Dynamic timer challenge</li>
+          </ul>
+        </div>
+
+        <!-- Mechanism 2: Drag & Drop -->
+        <div class="mech-card">
+          <div class="mech-badge">Mode 2</div>
+          <div class="mech-icon">🧩</div>
+          <h3>Drag & Drop (Fill-In-The-Blank)</h3>
+          <p>Complete code snippets by placing missing syntax keywords or variables into designated <code>[BLANK]</code> code slots.</p>
+
+          <ul class="mech-features">
+            <li>✅ Interactive syntax builder</li>
+            <li>💡 Distractor options included</li>
+          </ul>
+        </div>
+
+        <!-- Mechanism 3: Bug Sniper -->
+        <div class="mech-card">
+          <div class="mech-badge">Mode 3</div>
+          <div class="mech-icon">🎯</div>
+          <h3>Bug Sniper (Debugging)</h3>
+          <p>Scan multi-line C++ snippets, locate the exact line with a syntax or logical bug, and snipe it down with correct code replacements!</p>
+
+          <ul class="mech-features">
+            <li>🔍 Real-code line scanning</li>
+            <li>🛠️ Instant fix verification</li>
+          </ul>
+        </div>
+
+        <!-- Mechanism 4: Catch & Collect -->
+        <div class="mech-card">
+          <div class="mech-badge">Mode 4</div>
+          <div class="mech-icon">🌧️</div>
+          <h3>Catch & Collect (Raindrop)</h3>
+          <p>Arcade-style gameplay! Collect falling valid C++ keywords (e.g., <code>int</code>, <code>float</code>) while dodging false distractors.</p>
+
+          <ul class="mech-features">
+            <li>⚡ Fast-paced reflex action</li>
+            <li>🚫 Avoid syntax traps</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: CALL TO ACTION -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-box">
+        <h2>Ready to Conquer C++ Programming?</h2>
+        <p>Join your classmates, enter session PINs hosted by your lecturers, and conquer the coding leaderboard today!</p>
+        <a href="register.html" class="btn btn-primary btn-lg">Create Free Student Account</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 <strong>MazeProg System</strong>. All rights reserved.</p>
+    </div>
+  </footer>
 </body>
 </html>
