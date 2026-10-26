@@ -209,9 +209,10 @@ body {
 /* Layout 5 Grid */
 .question-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 5 kotak selari per baris */
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); /* Kad berkembang mengikut lebar skrin */
+  gap: 20px;
   padding: 20px 0;
+  width: 100%;
 }
 
 /* Reka Bentuk Kad Soalan */
@@ -607,7 +608,8 @@ body.lecturer-page {
 }
 
 body.lecturer-page .lecturer-container {
-  width: min(100%, 1320px);
+  width: min(100%, 1400px);
+  margin: 0 auto !important; /* Tolak layout ke tengah skrin */
   padding: 30px clamp(16px, 3vw, 36px) 52px !important;
 }
 
