@@ -8,6 +8,7 @@ if (!currentUser || currentUser.role !== 'lecturer') {
 
 const sessionFilter = document.getElementById('sessionFilter');
 const studentFilter = document.getElementById('studentFilter');
+const masteryFilter = document.getElementById('masteryFilter');
 const metrics = document.getElementById('analyticsMetrics');
 const studentProgressBody = document.getElementById('studentProgressBody');
 const topicPerformanceBody = document.getElementById('topicPerformanceBody');
@@ -19,9 +20,13 @@ let progressData = {};
 let misconceptionLogs = {};
 let questionBankData = {};
 let topicChart = null;
+let masteryPieChart = null;
 
 sessionFilter.addEventListener('change', renderAnalytics);
 studentFilter.addEventListener('change', renderAnalytics);
+if (masteryFilter) {
+  masteryFilter.addEventListener('change', renderAnalytics);
+}
 
 onValue(ref(database, 'GAME_SESSIONS'), (snapshot) => {
   sessionsData = snapshot.val() || {};
@@ -82,6 +87,18 @@ function getStudentSessionRows(ownedSessions) {
       const playerData = player || {};
       const savedProgress = progressData[userId]?.sessions?.[pin] || playerData.progress;
       const sessionProgress = savedProgress || {};
+      
+      const totalAttempts = Number(sessionProgress.total_attempts) || 0;
+      const correctAttempts = Number(sessionProgress.correct_attempts) || 0;
+      const accuracy = totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : null;
+
+      let tier = 'unranked';
+      if (accuracy !== null) {
+        if (accuracy >= 75) tier = 'mastered';
+        else if (accuracy >= 50) tier = 'progress';
+        else tier = 'struggling';
+      }
+
       rows.push({
         userId,
         name: playerData.name || progressData[userId]?.name || userId,
@@ -90,7 +107,9 @@ function getStudentSessionRows(ownedSessions) {
         progress: sessionProgress,
         hasProgressData: Boolean(savedProgress),
         sessionDate: session.created_at || sessionProgress.started_at || null,
-        score: Number(playerData.score ?? sessionProgress.score) || 0
+        score: Number(playerData.score ?? sessionProgress.score) || 0,
+        accuracy,
+        tier
       });
     });
   });
@@ -127,36 +146,125 @@ function renderAnalytics() {
   const allRows = getStudentSessionRows(ownedSessions);
   updateFilters(allRows, ownedSessions);
 
-  const visibleRows = allRows.filter((row) =>
+  // Filter based on session and student dropdown
+  const baseFiltered = allRows.filter((row) =>
     (sessionFilter.value === 'all' || row.pin === sessionFilter.value) &&
     (studentFilter.value === 'all' || row.userId === studentFilter.value)
   );
-  renderMetrics(visibleRows, ownedSessions);
+
+  // Render Charts based on session & student context
+  renderMetrics(baseFiltered, ownedSessions);
+  renderMasteryPieChart(baseFiltered);
+  renderTopicChart(baseFiltered);
+  renderTopics(baseFiltered);
+  renderRecommendations(baseFiltered);
+  renderWrongAnswers(baseFiltered, ownedSessions);
+
+  // Apply tier filter to the student list
+  const selectedMastery = masteryFilter ? masteryFilter.value : 'all';
+  const visibleRows = baseFiltered.filter((row) => 
+    selectedMastery === 'all' || row.tier === selectedMastery
+  );
+
   renderStudentProgress(visibleRows);
-  renderTopics(visibleRows);
-  renderTopicChart(visibleRows);
-  renderRecommendations(visibleRows);
-  renderWrongAnswers(visibleRows, ownedSessions);
 }
 
 function renderMetrics(rows, sessions) {
   const students = new Set(rows.map((row) => row.userId));
   const completed = rows.filter((row) => row.progress.is_completed).length;
+  const strugglingCount = rows.filter((row) => row.tier === 'struggling').length;
+
   metrics.replaceChildren();
   [
     [`${students.size}`, 'students'],
     [`${new Set(rows.map((row) => row.pin)).size}`, 'sessions in view'],
-    [`${completed}`, 'completed session records']
-  ].forEach(([value, label]) => {
+    [`${completed}`, 'completed sessions'],
+    [`${strugglingCount}`, 'needing support (<50%)']
+  ].forEach(([value, label], index) => {
     const item = document.createElement('span');
     const strong = document.createElement('strong');
     strong.textContent = value;
+    if (index === 3 && strugglingCount > 0) {
+      strong.style.color = '#fca5a5';
+    }
     item.append(strong, document.createTextNode(label));
     metrics.appendChild(item);
   });
   if (!rows.length && sessions.length) metrics.firstChild?.setAttribute('title', 'Students appear here after joining a game session.');
 }
 
+/* ================= PIE / DONUT MASTERY CHART ================= */
+function renderMasteryPieChart(rows) {
+  const canvas = document.getElementById('masteryPieChart');
+  const countLabel = document.getElementById('pieCountLabel');
+  if (!canvas) return;
+
+  if (masteryPieChart) {
+    masteryPieChart.destroy();
+    masteryPieChart = null;
+  }
+
+  const validRows = rows.filter((r) => r.accuracy !== null);
+  if (countLabel) countLabel.textContent = `${validRows.length} Active Records`;
+
+  if (!validRows.length) {
+    canvas.style.display = 'none';
+    return;
+  }
+  canvas.style.display = 'block';
+
+  const tiers = {
+    mastered: validRows.filter((r) => r.tier === 'mastered').length,
+    progress: validRows.filter((r) => r.tier === 'progress').length,
+    struggling: validRows.filter((r) => r.tier === 'struggling').length
+  };
+
+  masteryPieChart = new Chart(canvas.getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Mastered (≥75%)', 'In Progress (50–74%)', 'Needs Attention (<50%)'],
+      datasets: [{
+        data: [tiers.mastered, tiers.progress, tiers.struggling],
+        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+        borderColor: '#161522',
+        borderWidth: 2,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 12 }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const val = ctx.raw || 0;
+              const total = validRows.length;
+              const pct = total ? Math.round((val / total) * 100) : 0;
+              return ` ${ctx.label}: ${val} students (${pct}%)`;
+            }
+          }
+        }
+      },
+      cutout: '68%',
+      onClick: (evt, elements) => {
+        if (!elements.length) return;
+        const index = elements[0].index;
+        const tierKeys = ['mastered', 'progress', 'struggling'];
+        if (masteryFilter) {
+          masteryFilter.value = tierKeys[index];
+          renderAnalytics();
+        }
+      }
+    }
+  });
+}
+
+/* ================= STUDENT PROGRESS LIST ================= */
 function renderStudentProgress(rows) {
   studentProgressBody.replaceChildren();
   if (!rows.length) return appendEmptyRow(studentProgressBody, 7, 'No student progress matches these filters.');
@@ -164,15 +272,32 @@ function renderStudentProgress(rows) {
   rows.forEach((row) => {
     const progress = row.progress;
     const tr = document.createElement('tr');
+    tr.className = 'clickable-row';
+    tr.title = 'Click to view individual student breakdown';
+    tr.addEventListener('click', () => openStudentDetailModal(row));
+
     appendCell(tr, row.name);
     appendCell(tr, `${row.title} (${row.pin})`);
     appendCell(tr, formatDate(row.sessionDate));
     appendCell(tr, row.hasProgressData ? `${Number(progress.completed_questions) || 0}/${Number(progress.total_questions) || 0}` : 'Not tracked');
     appendCell(tr, row.hasProgressData
-      ? `${Number(progress.total_attempts) || 0} (${Number(progress.correct_attempts) || 0} correct, ${Number(progress.wrong_attempts) || 0} incorrect)`
-      : 'Question-level records unavailable');
+      ? `${Number(progress.total_attempts) || 0} (${Number(progress.correct_attempts) || 0} correct, ${Number(progress.wrong_attempts) || 0} wrong)`
+      : 'Unavailable');
     appendCell(tr, `${row.score} pts`);
-    appendCell(tr, progress.status || 'Joined');
+
+    // Tier badge formatting
+    const tierCell = document.createElement('td');
+    if (row.accuracy === null) {
+      tierCell.innerHTML = '<span style="color:#64748b;">Joined</span>';
+    } else if (row.tier === 'mastered') {
+      tierCell.innerHTML = `<span class="badge-tag badge-mastered">${row.accuracy}% · Mastered</span>`;
+    } else if (row.tier === 'progress') {
+      tierCell.innerHTML = `<span class="badge-tag badge-progress">${row.accuracy}% · Progress</span>`;
+    } else {
+      tierCell.innerHTML = `<span class="badge-tag badge-struggling">${row.accuracy}% · Attention</span>`;
+    }
+    tr.appendChild(tierCell);
+
     studentProgressBody.appendChild(tr);
   });
 }
@@ -180,7 +305,7 @@ function renderStudentProgress(rows) {
 function formatDate(value) {
   const timestamp = typeof value === 'number' ? value : Date.parse(value || '');
   return Number.isFinite(timestamp) && timestamp > 0
-    ? new Date(timestamp).toLocaleString('ms-MY', { dateStyle: 'medium', timeStyle: 'short' })
+    ? new Date(timestamp).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
     : 'No date recorded';
 }
 
@@ -221,14 +346,15 @@ function renderTopics(rows) {
 }
 
 function addTopicTotals(topicTotals, stats) {
-      const topicName = stats.topic || 'General';
-      const total = topicTotals.get(topicName) || { attempts: 0, correct: 0, wrong: 0 };
-      total.attempts += Number(stats.attempts) || 0;
-      total.correct += Number(stats.correct) || 0;
-      total.wrong += Number(stats.wrong) || 0;
-      topicTotals.set(topicName, total);
+  const topicName = stats.topic || 'General';
+  const total = topicTotals.get(topicName) || { attempts: 0, correct: 0, wrong: 0 };
+  total.attempts += Number(stats.attempts) || 0;
+  total.correct += Number(stats.correct) || 0;
+  total.wrong += Number(stats.wrong) || 0;
+  topicTotals.set(topicName, total);
 }
 
+/* ================= HORIZONTAL TOPIC BAR CHART ================= */
 function renderTopicChart(rows) {
   const ctx = document.getElementById('topicChart');
   if (!ctx) return;
@@ -257,9 +383,9 @@ function renderTopicChart(rows) {
       datasets: [{
         label: 'Accuracy %',
         data: topics.map((t) => Math.round(t.accuracy * 100)),
-        backgroundColor: topics.map((t) => (t.accuracy < 0.6 ? '#fca5a5' : '#a855f7')),
-        borderRadius: 6,
-        barThickness: 28
+        backgroundColor: topics.map((t) => (t.accuracy < 0.6 ? '#f87171' : '#a855f7')),
+        borderRadius: 5,
+        barThickness: 20
       }]
     },
     options: {
@@ -268,7 +394,6 @@ function renderTopicChart(rows) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        title: { display: true, text: 'Topic Accuracy (click a bar for details)', color: '#cbd5e1', font: { size: 14 } },
         tooltip: {
           callbacks: {
             label: (c) => {
@@ -280,8 +405,8 @@ function renderTopicChart(rows) {
         }
       },
       scales: {
-        x: { beginAtZero: true, max: 100, title: { display: true, text: 'Accuracy %', color: '#94a3b8' }, ticks: { color: '#94a3b8' } },
-        y: { ticks: { color: '#94a3b8' } }
+        x: { beginAtZero: true, max: 100, title: { display: false }, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+        y: { ticks: { color: '#94a3b8' }, grid: { display: false } }
       },
       onClick: (evt, elements) => {
         if (!elements.length) return;
@@ -292,19 +417,96 @@ function renderTopicChart(rows) {
   });
 }
 
+/* ================= STUDENT DETAIL POPUP ================= */
+function openStudentDetailModal(row) {
+  const modal = document.getElementById('studentDetailModal');
+  const nameEl = document.getElementById('studentModalName');
+  const sessionEl = document.getElementById('studentModalSession');
+  const statsEl = document.getElementById('studentModalStats');
+  const listEl = document.getElementById('studentModalTopicsList');
+  const assignBtn = document.getElementById('studentModalAssignBtn');
+
+  if (!modal || !nameEl) return;
+
+  nameEl.textContent = row.name;
+  sessionEl.textContent = `${row.title} · Session PIN: ${row.pin}`;
+
+  const progress = row.progress;
+  const attempts = Number(progress.total_attempts) || 0;
+  const correct = Number(progress.correct_attempts) || 0;
+  const acc = attempts ? Math.round((correct / attempts) * 100) : 0;
+
+  statsEl.innerHTML = `
+    <strong>Score:</strong> ${row.score} pts &nbsp;|&nbsp;
+    <strong>Attempts:</strong> ${attempts} &nbsp;|&nbsp;
+    <strong>Overall Accuracy:</strong> ${acc}%
+  `;
+
+  const studentTopics = sessionFilter.value === 'all'
+    ? Object.values(progressData[row.userId]?.topics || {})
+    : Object.values(row.progress.topics || {});
+
+  listEl.innerHTML = '';
+  if (!studentTopics.length) {
+    listEl.innerHTML = '<p style="color:#94a3b8; padding: 10px;">No detailed topic records captured for this student.</p>';
+    if (assignBtn) assignBtn.style.display = 'none';
+  } else {
+    let weakestTopic = null;
+    let highestWrong = -1;
+
+    studentTopics.forEach((st) => {
+      const a = Number(st.attempts) || 0;
+      const c = Number(st.correct) || 0;
+      const w = Number(st.wrong) || 0;
+      const accuracy = a ? Math.round((c / a) * 100) : 0;
+
+      if (w > highestWrong && a >= 2) {
+        highestWrong = w;
+        weakestTopic = st.topic;
+      }
+
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex; justify-content:space-between; padding:8px 12px; border-bottom:1px solid #334155; font-size:12px;';
+      div.innerHTML = `
+        <span style="color:#f8fafc;">${escapeHtml(st.topic || 'General')}</span>
+        <span style="color:${accuracy < 60 ? '#fca5a5' : '#6ee7b7'}; font-weight:600;">
+          ${c}/${a} correct (${accuracy}%)
+        </span>
+      `;
+      listEl.appendChild(div);
+    });
+
+    if (weakestTopic && assignBtn) {
+      assignBtn.style.display = 'block';
+      assignBtn.textContent = `Assign Adaptive Practice on '${weakestTopic}'`;
+      assignBtn.onclick = () => {
+        assignAdaptivePractice({ userId: row.userId, name: row.name, topic: weakestTopic, attempts: 3, wrong: highestWrong }, assignBtn);
+      };
+    } else if (assignBtn) {
+      assignBtn.style.display = 'none';
+    }
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeStudentDetailModal() {
+  const modal = document.getElementById('studentDetailModal');
+  if (modal) modal.style.display = 'none';
+}
+
+/* ================= TOPIC DETAIL POPUP ================= */
 function openTopicDetailModal(topicName, rows) {
   const modal = document.getElementById('topicDetailModal');
   const title = document.getElementById('detailModalTopic');
   const stats = document.getElementById('detailModalStats');
   const studentsList = document.getElementById('detailModalStudents');
   const assignBtn = document.getElementById('detailModalAssign');
-  const closeBtn = document.getElementById('closeTopicDetailModal');
 
   if (!modal || !title || !stats || !studentsList) return;
 
   title.textContent = topicName;
 
-  // Aggregate stats for this topic across visible rows
   let attempts = 0, correct = 0, wrong = 0;
   const studentRows = [];
 
@@ -329,11 +531,11 @@ function openTopicDetailModal(topicName, rows) {
     <strong>Accuracy:</strong> ${acc}%
   `;
 
-  const needAttention = studentRows.filter((s) => s.attempts >= 3 && (s.wrong / s.attempts) > 0.4);
+  const needAttention = studentRows.filter((s) => s.attempts >= 2 && (s.wrong / s.attempts) > 0.4);
 
   studentsList.innerHTML = '';
   if (!needAttention.length) {
-    studentsList.innerHTML = '<p style="color:#94a3b8; padding: 10px;">No students meet the attention threshold (≥3 attempts, &gt;40% wrong) for this topic.</p>';
+    studentsList.innerHTML = '<p style="color:#94a3b8; padding: 10px;">No students meet the attention threshold for this topic.</p>';
     assignBtn.style.display = 'none';
   } else {
     needAttention.forEach((s) => {
@@ -347,11 +549,10 @@ function openTopicDetailModal(topicName, rows) {
       row.querySelector('button').addEventListener('click', () => assignAdaptivePractice({ ...s, topic: topicName }, row.querySelector('button')));
       studentsList.appendChild(row);
     });
-    assignBtn.style.display = '';
+    assignBtn.style.display = 'block';
     assignBtn.onclick = () => {
-      let assigned = 0;
       needAttention.forEach((s) => {
-        assignAdaptivePractice({ ...s, topic: topicName }, assignBtn).then(() => { assigned++; });
+        assignAdaptivePractice({ ...s, topic: topicName }, assignBtn);
       });
       assignBtn.textContent = `Assigning to ${needAttention.length} students...`;
       assignBtn.disabled = true;
@@ -359,7 +560,7 @@ function openTopicDetailModal(topicName, rows) {
     };
   }
 
-  modal.style.display = 'block';
+  modal.style.display = 'flex';
 }
 
 function closeTopicDetailModal() {
@@ -367,6 +568,7 @@ function closeTopicDetailModal() {
   if (modal) modal.style.display = 'none';
 }
 
+/* ================= RECOMMENDATIONS ================= */
 function renderRecommendations(rows) {
   recommendations.replaceChildren();
   const studentTopics = new Map();
@@ -380,7 +582,7 @@ function renderRecommendations(rows) {
     topicStats.forEach((stats) => {
       const attempts = Number(stats.attempts) || 0;
       const wrong = Number(stats.wrong) || 0;
-      if (attempts < 3 || wrong / attempts <= 0.4) return;
+      if (attempts < 2 || wrong / attempts <= 0.4) return;
       const key = `${row.userId}:${stats.topic || 'General'}`;
       const item = studentTopics.get(key) || { userId: row.userId, name: row.name, topic: stats.topic || 'General', attempts: 0, wrong: 0 };
       item.attempts += attempts;
@@ -393,7 +595,7 @@ function renderRecommendations(rows) {
   if (!items.length) {
     const empty = document.createElement('p');
     empty.className = 'empty-state';
-    empty.textContent = rows.length ? 'No topic currently meets the attention threshold. Results with fewer than 3 attempts are not flagged.' : 'Recommendations appear when student attempts are available.';
+    empty.textContent = rows.length ? 'No topic currently meets the attention threshold. Well done!' : 'Recommendations appear when student attempts are available.';
     recommendations.appendChild(empty);
     return;
   }
@@ -504,10 +706,14 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// Modal closing event listeners
 document.getElementById('closeTopicDetailModal')?.addEventListener('click', closeTopicDetailModal);
+document.getElementById('closeStudentDetailModal')?.addEventListener('click', closeStudentDetailModal);
 window.addEventListener('click', (e) => {
-  const modal = document.getElementById('topicDetailModal');
-  if (modal && e.target === modal) closeTopicDetailModal();
+  const topicModal = document.getElementById('topicDetailModal');
+  const studentModal = document.getElementById('studentDetailModal');
+  if (topicModal && e.target === topicModal) closeTopicDetailModal();
+  if (studentModal && e.target === studentModal) closeStudentDetailModal();
 });
 
 function showAnalyticsError(error) {
