@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MazeProg - C++ Learning Path</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/student-sidebar.css">
+  <style>
+    .course-page { max-width: 1440px; margin: 0 auto; padding: 28px clamp(16px, 3vw, 36px) 48px; }
+    .course-heading { margin-bottom: 22px; }
+    .course-eyebrow { margin-bottom: 7px; color: #7dd3fc; font-size: 11px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+    .course-heading h1 { margin: 0 0 8px; font-size: clamp(26px, 3vw, 36px); }
+    .course-heading p { max-width: 780px; color: #94a3b8; line-height: 1.65; }
+    .course-overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0 20px; }
+    .course-overview div { padding: 13px 15px; border: 1px solid #334155; border-radius: 9px; background: rgba(17, 24, 39, .75); }
+    .course-overview strong { display: block; margin-bottom: 3px; color: #f8fafc; font-size: 13px; }
+    .course-overview span { color: #94a3b8; font-size: 11px; }
+    .course-progress { height: 7px; overflow: hidden; border-radius: 99px; background: #1e293b; }
+    .course-progress > span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #0ea5e9, #a855f7); transition: width .25s ease; }
+    .course-progress-label { display: flex; justify-content: space-between; gap: 12px; margin: 7px 0 18px; color: #94a3b8; font-size: 11px; }
+    .course-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: start; gap: 18px; }
+    .module-panel { position: sticky; top: 18px; padding: 15px; border: 1px solid #334155; border-radius: 12px; background: rgba(17, 24, 39, .82); }
+    .module-panel h2 { margin: 0 0 12px; color: #f8fafc; font-size: 14px; }
+    .module-group-label { margin: 14px 0 6px; color: #64748b; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .module-list { display: grid; gap: 5px; }
+    .module-button { display: flex; width: 100%; align-items: center; gap: 9px; padding: 9px 10px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: #aab6c8; cursor: pointer; text-align: left; transition: background .16s ease, color .16s ease, border-color .16s ease; }
+    .module-button:hover { background: rgba(148, 163, 184, .08); color: #f8fafc; }
+    .module-button[aria-current="step"] { border-color: rgba(125, 211, 252, .24); background: rgba(14, 165, 233, .12); color: #bae6fd; }
+    .module-number { display: grid; width: 25px; height: 25px; flex: 0 0 25px; place-items: center; border: 1px solid #475569; border-radius: 50%; color: #cbd5e1; font-size: 10px; font-weight: 700; }
+    .module-button.is-complete .module-number { border-color: rgba(52, 211, 153, .45); background: rgba(16, 185, 129, .16); color: #6ee7b7; }
+    .module-button span:last-child { font-size: 12px; line-height: 1.35; }
+    .lesson-panel { min-width: 0; padding: clamp(18px, 3vw, 30px); border: 1px solid #334155; border-radius: 13px; background: linear-gradient(145deg, rgba(30, 41, 59, .93), rgba(17, 24, 39, .96)); }
+    .lesson-kicker { color: #7dd3fc; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .lesson-panel h2 { margin: 7px 0 8px; font-size: clamp(22px, 3vw, 29px); }
+    .lesson-intro { max-width: 780px; color: #aab6c8; line-height: 1.65; }
+    .lesson-content { display: grid; gap: 16px; margin-top: 21px; }
+    .lesson-section { padding: 15px; border: 1px solid rgba(148, 163, 184, .14); border-radius: 10px; background: rgba(2, 6, 23, .24); }
+    .lesson-section h3 { margin: 0 0 8px; color: #f8fafc; font-size: 15px; }
+    .lesson-section p, .lesson-section li { color: #b6c2d2; font-size: 13px; line-height: 1.65; }
+    .lesson-section p + p { margin-top: 8px; }
+    .lesson-section ul, .lesson-section ol { display: grid; gap: 5px; padding-left: 20px; }
+    .lesson-code-wrap { overflow-x: auto; margin-top: 10px; border: 1px solid #263449; border-radius: 8px; background: #080f1c; }
+    .lesson-code-title { padding: 8px 11px; border-bottom: 1px solid #263449; color: #64748b; font-size: 10px; }
+    .lesson-code { margin: 0; padding: 13px; color: #dbeafe; font: 12px/1.7 Consolas, 'Courier New', monospace; white-space: pre; }
+    .lesson-code .comment { color: #6b829d; }
+    .lesson-code .keyword { color: #c4b5fd; }
+    .lesson-code .string { color: #86efac; }
+    .lesson-code .number { color: #fcd34d; }
+    .lesson-step-list { display: grid; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; counter-reset: lesson-steps; }
+    .lesson-step-list li { position: relative; min-height: 35px; padding: 7px 8px 7px 40px; border-radius: 7px; background: rgba(15, 23, 42, .8); counter-increment: lesson-steps; }
+    .lesson-step-list li::before { position: absolute; top: 7px; left: 9px; display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; background: rgba(14, 165, 233, .16); color: #7dd3fc; content: counter(lesson-steps); font-size: 10px; font-weight: 700; }
+    .try-it { display: grid; gap: 9px; }
+    .try-it legend { padding: 0 5px; color: #f8fafc; font-size: 13px; font-weight: 700; }
+    .quiz-options { display: grid; gap: 7px; }
+    .quiz-option { display: flex; align-items: flex-start; gap: 8px; padding: 9px 10px; border: 1px solid #334155; border-radius: 7px; color: #cbd5e1; cursor: pointer; font-size: 12px; line-height: 1.5; }
+    .quiz-option:hover { border-color: rgba(125, 211, 252, .5); }
+    .quiz-option:has(input:checked) { border-color: #38bdf8; background: rgba(14, 165, 233, .09); }
+    .quiz-option input { margin-top: 2px; accent-color: #0ea5e9; }
+    .quiz-feedback { min-height: 18px; color: #94a3b8; font-size: 12px; }
+    .quiz-feedback.is-correct { color: #6ee7b7; }
+    .quiz-feedback.is-incorrect { color: #fca5a5; }
+    .lesson-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 19px; padding-top: 15px; border-top: 1px solid #334155; }
+    .lesson-footer .btn[disabled] { cursor: not-allowed; opacity: .45; }
+    .lesson-nav-actions { display: flex; gap: 8px; }
+    .lesson-complete { display: none; margin-top: 14px; padding: 13px; border: 1px solid rgba(52, 211, 153, .25); border-radius: 8px; background: rgba(16, 185, 129, .08); color: #a7f3d0; font-size: 12px; line-height: 1.6; }
+    @media (max-width: 900px) { .course-layout { grid-template-columns: 1fr; } .module-panel { position: static; } .module-list { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); } }
+    @media (max-width: 600px) {
+      .course-overview { grid-template-columns: 1fr; gap: 7px; }
+      .course-overview div { padding: 10px 12px; }
+      .lesson-footer { align-items: stretch; flex-direction: column; }
+      .lesson-nav-actions { display: grid; grid-template-columns: 1fr 1fr; }
+      .lesson-nav-actions .btn { text-align: center; }
+      .module-list { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { .course-progress > span, .module-button { transition: none; } }
+  </style>
+</head>
+<body>
+  <main class="course-page">
+    <header class="course-heading">
+      <div class="course-eyebrow">MazeProg guided course</div>
+      <h1>C++ Foundations</h1>
+      <p>Build your programming foundations one idea at a time. Read a short explanation, follow a worked example, and check your understanding before moving on.</p>
+      <div class="course-overview" aria-label="Course overview">
+        <div><strong>6 guided modules</strong><span>Follow the learning path in order or revisit any module.</span></div>
+        <div><strong>Examples and quick checks</strong><span>Learn by tracing code and testing your understanding.</span></div>
+        <div><strong>Learn at your own pace</strong><span>Your completed modules are saved in this browser.</span></div>
+      </div>
+      <div class="course-progress" role="progressbar" aria-label="Course progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="courseProgressBar"></span></div>
+      <div class="course-progress-label"><span id="courseProgressText">0 of 6 modules completed</span><span id="courseProgressPercent">0%</span></div>
+    </header>
+
+    <div class="course-layout">
+      <aside class="module-panel" aria-label="Course modules">
+        <h2>Course modules</h2>
+        <p class="module-group-label">Getting started</p>
+        <nav id="moduleList" class="module-list" aria-label="Getting started modules"></nav>
+        <p class="module-group-label">Control structure</p>
+        <nav id="controlModuleList" class="module-list" aria-label="Control structure modules"></nav>
+      </aside>
+
+      <article class="lesson-panel" aria-live="polite">
+        <div id="lessonKicker" class="lesson-kicker"></div>
+        <h2 id="lessonTitle"></h2>
+        <p id="lessonIntro" class="lesson-intro"></p>
+        <div id="lessonContent" class="lesson-content"></div>
+        <div id="lessonComplete" class="lesson-complete"></div>
+        <footer class="lesson-footer">
+          <span id="moduleCounter" style="color:#94a3b8; font-size:11px;"></span>
+          <div class="lesson-nav-actions">
+            <button id="previousModule" class="btn btn-outline" type="button">Previous</button>
+            <button id="nextModule" class="btn btn-primary" type="button">Next module</button>
+          </div>
+        </footer>
+      </article>
+    </div>
+  </main>
+  <script src="js/student-learn.js"></script>
+  <script src="js/student-sidebar.js"></script>
+</body>
+</html>

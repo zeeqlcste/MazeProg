@@ -4,7 +4,7 @@ import { ref, get, update, child } from "https://www.gstatic.com/firebasejs/10.8
 // 1. SEMAK LOG MASUK PELAJAR
 const userString = localStorage.getItem('loggedInUser');
 if (!userString) {
-  alert("Sila log masuk terlebih dahulu!");
+  alert("Please log in first.");
   window.location.href = "login.html";
 }
 
@@ -26,7 +26,6 @@ const classInput = document.getElementById('classInput');
 const semesterInput = document.getElementById('semesterInput');
 
 const profileForm = document.getElementById('profileForm');
-const backBtn = document.getElementById('backBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 
 let selectedBase64Image = "";
@@ -40,7 +39,6 @@ async function fetchAndPopulateProfile() {
     const userSnap = await get(child(dbRef, `USER/${userId}`));
     if (userSnap.exists()) {
       const uData = userSnap.val();
-      console.log("Data USER dari DB:", uData);
       nameInput.value = uData.name || currentUser.name || "";
       emailInput.value = uData.email || currentUser.email || "";
 
@@ -57,19 +55,17 @@ async function fetchAndPopulateProfile() {
     const studentSnap = await get(child(dbRef, `STUDENT/${userId}`));
     if (studentSnap.exists()) {
       const sData = studentSnap.val();
-      console.log("Data STUDENT dari DB:", sData);
-
       // ISI VALUE SECARA SOLID (Bukan placeholder)
       facultyInput.value = sData.faculty || "";
       courseInput.value = sData.course || "";
       classInput.value = sData.class || "";
       semesterInput.value = sData.semester || "";
     } else {
-      console.warn("Nod STUDENT tidak dijumpai untuk ID ini:", userId);
+      console.warn("Student profile data was not found for this account:", userId);
     }
 
   } catch (error) {
-    console.error("Ralat membaca Realtime Database:", error);
+    console.error("Unable to load profile data:", error);
   }
 }
 
@@ -101,7 +97,7 @@ if (avatarDropZone) {
     if (file && file.type.startsWith('image/')) {
       processImageFile(file);
     } else {
-      alert("Sila seret fail gambar sahaja!");
+      alert("Please select or drop an image file.");
     }
   });
 }
@@ -152,25 +148,18 @@ profileForm.addEventListener('submit', async (e) => {
 
     localStorage.setItem('loggedInUser', JSON.stringify(currentUser));
 
-    alert("Profil berjaya dikemaskini!");
+    alert("Your profile has been updated.");
     location.reload(); // Refresh halaman untuk paparan data terbaharu yang solid
 
   } catch (error) {
-    console.error("Ralat menyimpan profil:", error);
-    alert("Gagal mengemaskini profil: " + error.message);
+    console.error("Unable to save profile:", error);
+    alert("Could not update your profile: " + error.message);
   }
 });
 
-// NAVIGASI
-if (backBtn) {
-  backBtn.onclick = () => {
-    window.location.href = "student-dashboard.html";
-  };
-}
-
 if (logoutBtn) {
   logoutBtn.onclick = () => {
-    if (confirm("Adakah anda pasti mahu log keluar?")) {
+    if (confirm("Are you sure you want to log out?")) {
       localStorage.removeItem('loggedInUser');
       window.location.href = 'login.html';
     }

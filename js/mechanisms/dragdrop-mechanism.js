@@ -1,3 +1,5 @@
+import { playGameSound } from "../game-audio.js";
+
 export function renderDragDrop(container, qData, onSubmit) {
   // 1. SEMAK SAMA ADA INI ADALAH SOALAN FILL-IN-THE-BLANK (BLANK SLOT)
   if (qData.question_template || qData.correct_answer) {
@@ -34,31 +36,31 @@ export function renderDragDrop(container, qData, onSubmit) {
         </div>
 
         <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">
-          Seret blok kod yang betul atau klik pada blok di bawah untuk mengisi tempat kosong [BLANK]:
+          Drag or tap a code block to fill the blank:
         </p>
 
         <!-- PILIHAN BLOK JAWAPAN (DRAGGABLE POOL) -->
         <div id="blocksPool" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px;">
           ${allBlocks.map((text, i) => `
-            <div class="drag-block" draggable="true" id="block_${i}" data-val="${text}" style="
+            <button type="button" class="drag-block" draggable="true" id="block_${i}" data-val="${text}" style="
               padding: 10px 20px;
               background: #7e22ce;
               color: #fff;
+              border: 1px solid #a855f7;
               border-radius: 8px;
               font-weight: bold;
               font-family: monospace;
               cursor: grab;
               user-select: none;
-              border: 1px solid #a855f7;
               box-shadow: 0 4px 10px rgba(168, 85, 247, 0.2);
               transition: all 0.2s;
             ">
               ${text}
-            </div>
+            </button>
           `).join('')}
         </div>
 
-        <button id="submitDragBtn" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: bold;" disabled>Hantar Jawapan</button>
+        <button id="submitDragBtn" class="btn btn-primary" type="button" style="width: 100%; padding: 12px; font-weight: bold;" disabled>Submit Answer</button>
       </div>
     `;
 
@@ -87,6 +89,7 @@ export function renderDragDrop(container, qData, onSubmit) {
         dropZone.style.background = 'rgba(16, 185, 129, 0.15)';
         dropZone.style.color = '#6ee7b7';
         submitBtn.disabled = false;
+        playGameSound('select');
       });
     });
 
@@ -111,6 +114,7 @@ export function renderDragDrop(container, qData, onSubmit) {
         dropZone.style.background = 'rgba(16, 185, 129, 0.15)';
         dropZone.style.color = '#6ee7b7';
         submitBtn.disabled = false;
+        playGameSound('select');
       }
     });
 
@@ -130,12 +134,13 @@ export function renderDragDrop(container, qData, onSubmit) {
     let html = `
       <div style="max-width: 600px; margin: 0 auto; text-align: left;">
         <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">
-          Susun perkataan/baris kod di bawah mengikut urutan yang betul:
+          Arrange the code blocks in the correct order:
         </p>
 
         <div id="dragSource" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
           ${options.map((opt, idx) => `
-            <div class="drag-item" draggable="true" data-index="${idx}" data-val="${opt}" style="
+            <button type="button" class="drag-item" draggable="true" data-index="${idx}" data-val="${opt}" aria-pressed="false" style="
+              width: 100%;
               background: #1e293b;
               border: 1px solid #334155;
               border-radius: 6px;
@@ -145,9 +150,10 @@ export function renderDragDrop(container, qData, onSubmit) {
               font-size: 13px;
               cursor: grab;
               user-select: none;
+              text-align: left;
             ">
               ${opt}
-            </div>
+            </button>
           `).join('')}
         </div>
 
@@ -164,12 +170,12 @@ export function renderDragDrop(container, qData, onSubmit) {
           margin-bottom: 16px;
           transition: all 0.2s;
         ">
-          Seret item di sini
+          Drag or tap code blocks here
         </div>
 
         <div id="dropOrder" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;"></div>
 
-        <button id="submitDragBtn" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: bold;" disabled>Serahkan Jawapan</button>
+        <button id="submitDragBtn" class="btn btn-primary" type="button" style="width: 100%; padding: 12px; font-weight: bold;" disabled>Submit Answer</button>
       </div>
     `;
 
@@ -190,6 +196,15 @@ export function renderDragDrop(container, qData, onSubmit) {
       item.addEventListener('dragend', () => {
         item.style.opacity = '1';
       });
+      item.addEventListener('click', () => {
+        const index = item.dataset.index;
+        if (dropped.some(d => d.index === index)) return;
+        dropped.push({ index, val: item.dataset.val });
+        item.setAttribute('aria-pressed', 'true');
+        renderDropped();
+        updateSubmit();
+        playGameSound('select');
+      });
     });
 
     dropZone.addEventListener('dragover', (e) => {
@@ -209,7 +224,9 @@ export function renderDragDrop(container, qData, onSubmit) {
       const item = options[idx];
       if (item !== undefined && !dropped.some(d => d.index === idx)) {
         dropped.push({ index: idx, val: item });
+        dragItems[Number(idx)]?.setAttribute('aria-pressed', 'true');
         renderDropped();
+        playGameSound('select');
       }
       dropZone.style.borderColor = '#334155';
       dropZone.style.background = '#0b1329';
@@ -232,16 +249,18 @@ export function renderDragDrop(container, qData, onSubmit) {
           gap: 8px;
         ">
           <span>${d.val}</span>
-          <span style="cursor: pointer; color: #ef4444; font-weight: bold; font-size: 16px;" onclick="removeDrop(${i})">×</span>
+          <button type="button" class="remove-drop" data-pos="${i}" aria-label="Remove item ${i + 1}" style="border: 0; background: transparent; cursor: pointer; color: #f87171; font-weight: bold; font-size: 18px;">×</button>
         </div>
       `).join('');
+      dropOrder.querySelectorAll('.remove-drop').forEach(button => {
+        button.addEventListener('click', () => {
+          const [removed] = dropped.splice(Number(button.dataset.pos), 1);
+          dragItems[Number(removed?.index)]?.setAttribute('aria-pressed', 'false');
+          renderDropped();
+          updateSubmit();
+        });
+      });
     }
-
-    window.removeDrop = (pos) => {
-      dropped.splice(pos, 1);
-      renderDropped();
-      updateSubmit();
-    };
 
     function updateSubmit() {
       submitBtn.disabled = dropped.length === 0;

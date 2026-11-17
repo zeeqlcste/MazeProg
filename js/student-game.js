@@ -6,6 +6,7 @@ import { renderMCQ } from "./mechanisms/mcq-mechanism.js";
 import { renderBugSniper as renderFindBug } from "./mechanisms/bug-mechanism.js";
 import { renderDragDrop as renderRearrange } from "./mechanisms/dragdrop-mechanism.js";
 import { renderCatchCollect } from "./mechanisms/catch-mechanism.js";
+import { isGameSoundEnabled, playGameSound, setGameSoundEnabled } from "./game-audio.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const currentPin = urlParams.get('pin');
@@ -14,7 +15,7 @@ const currentUser = userString ? JSON.parse(userString) : null;
 const userId = currentUser ? (currentUser.user_id || currentUser.uid || currentUser.id) : null;
 
 if (!currentPin || !currentUser || !userId) {
-  alert("Sesi tidak sah.");
+  alert("This game session is invalid.");
   window.location.href = 'student-dashboard.html';
 }
 
@@ -28,6 +29,9 @@ const mechanismContainer = document.getElementById('mechanismContainer');
 const feedbackBox = document.getElementById('feedbackBox');
 const questionTimerText = document.getElementById('questionTimerText');
 const questionTimerBar = document.getElementById('questionTimerBar');
+const missionProgressText = document.getElementById('missionProgressText');
+const missionProgressBar = document.getElementById('missionProgressBar');
+const soundToggle = document.getElementById('soundToggle');
 
 const MECHANISM_RULES = {
   mcq: { label: 'MCQ', minTime: 20, maxTime: 30, defaultTime: 25, basePoints: 100 },
@@ -60,12 +64,23 @@ let currentQuestionObject = null;
 let sessionStartedAt = Date.now();
 let questionStartedAt = Date.now();
 let currentSessionMeta = {};
+let feedbackTimeout = null;
+let mechanismCleanup = null;
+const earnedBadges = new Set();
+
+soundToggle.addEventListener('click', () => {
+  const enabled = !isGameSoundEnabled();
+  setGameSoundEnabled(enabled);
+  updateSoundToggle();
+  if (enabled) playGameSound('select');
+});
+updateSoundToggle();
 
 // LISTEN DB
 const sessionRef = ref(database, `GAME_SESSIONS/${currentPin}`);
 onValue(sessionRef, async (snapshot) => {
   if (!snapshot.exists()) {
-    alert("Sesi ditamatkan.");
+    alert("This game session has ended.");
     window.location.href = 'student-dashboard.html';
     return;
   }
@@ -95,13 +110,15 @@ onValue(sessionRef, async (snapshot) => {
 
 function loadQuestion(index) {
   stopQuestionTimer();
+  stopCurrentMechanism();
   if (index >= compiledQuestions.length) {
     finishGame();
     return;
   }
 
-  feedbackBox.style.display = 'none';
+  clearFeedback();
   mechanismContainer.innerHTML = '';
+  updateMissionProgress(index);
 
   const currentQObj = compiledQuestions[index];
   const qData = currentQObj.data || currentQObj;
@@ -114,9 +131,9 @@ function loadQuestion(index) {
   timeLeft = currentTimeLimit;
   resultLocked = false;
 
-  questionProgress.textContent = `Soalan ${index + 1} / ${compiledQuestions.length}`;
+  questionProgress.textContent = `Question ${index + 1} of ${compiledQuestions.length}`;
   mechBadge.textContent = getMechanismLabel(mechanism);
-  questionTitle.textContent = qData.question_text || qData.instruction || qData.question_template || "Selesaikan soalan di bawah:";
+  questionTitle.textContent = qData.question_text || qData.instruction || qData.question_template || "Solve the challenge:";
 
   if (qData.code_snippet) {
     questionCodeBlock.style.display = 'block';
@@ -157,7 +174,7 @@ function loadQuestion(index) {
 
       case 'catch_collect':
       case 'catch':
-        renderCatchCollect(mechanismContainer, qData, handleAnswerSubmit);
+        mechanismCleanup = renderCatchCollect(mechanismContainer, qData, handleAnswerSubmit);
         break;
 
       default:
@@ -165,8 +182,104 @@ function loadQuestion(index) {
     }
   } catch (err) {
     console.error("Ralat memuatkan mekanisme:", err);
-    mechanismContainer.innerHTML = `<p style="color: #ef4444; text-align: center;">Gagal memuatkan komponen soalan ini.</p>`;
+    mechanismContainer.innerHTML = `<p style="color: #ef4444; text-align: center;">Unable to load this question.</p>`;
   }
+}
+
+function stopCurrentMechanism() {
+  if (typeof mechanismCleanup === 'function') {
+    mechanismCleanup();
+    mechanismCleanup = null;
+  }
+}
+
+function updateSoundToggle() {
+  const enabled = isGameSoundEnabled();
+  soundToggle.textContent = enabled ? 'Sound: On' : 'Sound: Off';
+  soundToggle.setAttribute('aria-pressed', String(enabled));
+  soundToggle.setAttribute('aria-label', enabled ? 'Turn sound off' : 'Turn sound on');
+}
+
+function updateMissionProgress(completedCount) {
+  const total = compiledQuestions.length;
+  const completed = Math.min(total, Math.max(0, completedCount));
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+  missionProgressText.textContent = `${completed} / ${total} questions complete`;
+  missionProgressBar.style.width = `${percentage}%`;
+  const progressTrack = missionProgressBar.parentElement;
+  progressTrack.setAttribute('aria-valuemax', String(total));
+  progressTrack.setAttribute('aria-valuenow', String(completed));
+}
+
+function clearFeedback() {
+  if (feedbackTimeout) {
+    clearTimeout(feedbackTimeout);
+    feedbackTimeout = null;
+  }
+  feedbackBox.className = 'feedback-box';
+  feedbackBox.replaceChildren();
+}
+
+function showFeedback(type, title, detail, duration = 2200) {
+  if (feedbackTimeout) clearTimeout(feedbackTimeout);
+
+  const icons = { correct: '✨', wrong: '💪' };
+  const icon = document.createElement('span');
+  icon.className = 'feedback-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = icons[type] || '🎮';
+
+  const content = document.createElement('div');
+  const titleElement = document.createElement('div');
+  titleElement.className = 'feedback-title';
+  titleElement.textContent = title;
+  const detailElement = document.createElement('div');
+  detailElement.className = 'feedback-detail';
+  detailElement.textContent = detail;
+  content.append(titleElement, detailElement);
+
+  feedbackBox.replaceChildren(icon, content);
+  feedbackBox.className = `feedback-box feedback-${type} is-visible`;
+  feedbackTimeout = setTimeout(() => {
+    feedbackBox.classList.remove('is-visible');
+    feedbackTimeout = null;
+  }, duration);
+}
+
+function getCorrectAnswerFeedback(extra = {}) {
+  if (extra.roundComplete && Number.isFinite(Number(extra.correctCount))) {
+    return `You caught ${Number(extra.correctCount)} of ${Number(extra.totalCorrect) || 0} correct items.`;
+  }
+
+  const qData = currentQuestionObject?.data || currentQuestionObject || {};
+  if (['mcq', 'tf'].includes(currentMechanism)) {
+    if (qData.correct_answer !== undefined && String(qData.correct_answer).trim()) {
+      return `Correct answer: ${qData.correct_answer}`;
+    }
+    if (qData.correct_option_index !== undefined && qData.correct_option_index !== null) {
+      const correctIndex = Number(qData.correct_option_index);
+      if (Number.isInteger(correctIndex) && qData.options?.[correctIndex] !== undefined) {
+        return `Correct answer: ${qData.options[correctIndex]}`;
+      }
+    }
+  }
+
+  if (currentMechanism === 'bug' || currentMechanism === 'bug_sniper') {
+    const fix = qData.correct_fix ? ` The fix is: ${qData.correct_fix}` : '';
+    return `The bug is on line ${qData.bug_line || 1}.${fix}`;
+  }
+
+  if (Array.isArray(qData.correct_order)) {
+    return `Correct order: ${qData.correct_order.join(' → ')}`;
+  }
+  if (qData.correct_answer) return `Correct answer: ${qData.correct_answer}`;
+  return 'Take what you learned into the next question.';
+}
+
+function getStreakBadge(streak) {
+  if (![3, 5, 10].includes(streak) || earnedBadges.has(streak)) return '';
+  earnedBadges.add(streak);
+  return `🏅 Badge unlocked: ${streak}-answer streak!`;
 }
 
 // FORMAT BADGE
@@ -187,6 +300,7 @@ function startQuestionTimer() {
   timerInterval = setInterval(() => {
     timeLeft = Math.max(0, timeLeft - 1);
     updateTimerDisplay();
+    if ([5, 3, 1].includes(timeLeft)) playGameSound('countdown');
     if (timeLeft === 0) {
       stopQuestionTimer();
       processResult(false, { timedOut: true });
@@ -206,6 +320,7 @@ function updateTimerDisplay() {
   const percentage = (timeLeft / currentTimeLimit) * 100;
   questionTimerBar.style.width = `${percentage}%`;
   questionTimerBar.style.backgroundColor = percentage <= 25 ? '#ef4444' : percentage <= 50 ? '#f59e0b' : '#10b981';
+  questionTimerText.classList.toggle('timer-warning', percentage <= 25);
 }
 
 function handleMechanismResult(isCorrect, extra = {}) {
@@ -228,6 +343,10 @@ function handleMechanismResult(isCorrect, extra = {}) {
   }
 
   if (!isCorrect) {
+    if (['mcq', 'tf'].includes(currentMechanism)) {
+      processResult(false, { ...extra, firstTryWrong: true });
+      return;
+    }
     applyWrongAnswerPenalty(extra);
     return;
   }
@@ -240,29 +359,33 @@ function applyWrongAnswerPenalty(extra = {}, recordAttempt = true) {
   currentStreak = 0;
   if (recordAttempt) recordProgressAttempt(false, extra, { countAttempt: true });
   timeLeft = Math.max(0, timeLeft - 5);
-  feedbackBox.style.display = 'block';
-  feedbackBox.className = 'feedback-box feedback-wrong';
-  feedbackBox.textContent = timeLeft > 0
-    ? '❌ Jawapan salah! Masa ditolak 5 saat. Cuba lagi.'
-    : '❌ Masa tamat. Markah untuk soalan ini: 0.';
   updateTimerDisplay();
 
   if (timeLeft === 0) {
     stopQuestionTimer();
-    processResult(false, { timedOut: true });
+    processResult(false, { timedOut: true, countAttempt: false });
+    return;
   }
+
+  playGameSound('incorrect');
+  const encouragement = [
+    'Almost! Take another shot.',
+    'Keep going — you can crack this one.',
+    'Every attempt gets you closer. Try again!',
+    'You’ve got this. Give it another go!'
+  ];
+  const message = encouragement[Math.floor(Math.random() * encouragement.length)];
+  showFeedback('wrong', message, `5-second penalty applied. ${timeLeft} seconds remain.`);
 }
 
-// PROSES MARKAH, STREAK, SPEED BONUS & PENYIMPANAN
 async function processResult(isCorrect, extra = {}) {
   if (resultLocked) return;
   resultLocked = true;
   stopQuestionTimer();
-  feedbackBox.style.display = 'block';
+  stopCurrentMechanism();
 
   const rules = getMechanismRules(currentMechanism);
   let earnedPoints = 0;
-  let speedBonus = 0;
 
   const canEarnPoints = !extra.timedOut && (isCorrect || (rules.perItem && extra.roundComplete));
   if (canEarnPoints) {
@@ -275,30 +398,37 @@ async function processResult(isCorrect, extra = {}) {
 
     const correctCount = rules.perItem ? Math.max(0, Number(extra.correctCount) || 0) : 1;
     const basePoints = rules.basePoints * correctCount;
-    const timeRatio = currentTimeLimit > 0 ? timeLeft / currentTimeLimit : 0;
-    speedBonus = timeRatio >= 0.75 ? Math.round(basePoints * 0.5)
-      : timeRatio >= 0.5 ? Math.round(basePoints * 0.25)
-        : 0;
-    const multiplier = currentStreak >= 5 ? 2 : currentStreak >= 3 ? 1.5 : currentStreak >= 2 ? 1.2 : 1;
-    earnedPoints = Math.round((basePoints + speedBonus) * multiplier);
+    const timeRatio = currentTimeLimit > 0 ? Math.max(0, Math.min(1, timeLeft / currentTimeLimit)) : 0;
+    earnedPoints = Math.round(basePoints * timeRatio);
     userScore += earnedPoints;
 
     scoreDisplay.textContent = `Score: ${userScore}`;
-    feedbackBox.className = isCorrect ? 'feedback-box feedback-correct' : 'feedback-box feedback-wrong';
-
+    const pointsText = `${earnedPoints}/${basePoints} PTS`;
     const streakText = currentStreak > 1 ? ` 🔥 ${currentStreak}x STREAK!` : '';
-    const bonusText = speedBonus > 0 ? ` ⚡ +${speedBonus} Speed` : '';
-    feedbackBox.textContent = isCorrect
-      ? `✅ JAWAPAN BETUL! (+${earnedPoints} PTS)${bonusText}${streakText}`
-      : `Pusingan tamat. ${correctCount} item betul (+${earnedPoints} PTS).`;
+    const badgeText = isCorrect ? getStreakBadge(currentStreak) : '';
+    const resultTitle = extra.livesRemaining === 0
+      ? 'Out of lives — keep going!'
+      : isCorrect ? 'Correct! Great work!' : 'Round complete!';
+    const resultDetail = isCorrect
+      ? `+${pointsText}${streakText}${badgeText ? ` · ${badgeText}` : ''}`
+      : `${correctCount} correct items · ${extra.livesRemaining === 0 ? 'No lives left · ' : ''}+${pointsText}`;
+    showFeedback(isCorrect ? 'correct' : 'wrong', resultTitle, resultDetail, 1900);
+    if (isCorrect) playGameSound('correct');
+    else playGameSound('incorrect');
   } else {
     currentStreak = 0;
-    feedbackBox.className = 'feedback-box feedback-wrong';
-    feedbackBox.textContent = '⏱️ MASA TAMAT! 0 mata untuk soalan ini.';
+    const timedOut = Boolean(extra.timedOut);
+    const resultTitle = extra.firstTryWrong
+      ? 'Tough one — keep going!'
+      : timedOut ? "Time's up!" : 'Keep moving forward!';
+    const resultDetail = `${timedOut ? 'No points this time.' : 'No points for this question.'} ${getCorrectAnswerFeedback(extra)}`;
+    showFeedback('wrong', resultTitle, resultDetail, 1900);
+    playGameSound(timedOut ? 'timeout' : 'incorrect');
   }
+  updateMissionProgress(currentIndex + 1);
 
   recordProgressAttempt(isCorrect && !extra.timedOut, extra, {
-    countAttempt: !extra.roundComplete,
+    countAttempt: !extra.roundComplete && extra.countAttempt !== false,
     completeQuestion: true,
     timedOut: Boolean(extra.timedOut),
     earnedPoints
@@ -319,7 +449,7 @@ async function processResult(isCorrect, extra = {}) {
   setTimeout(() => {
     currentIndex++;
     loadQuestion(currentIndex);
-  }, 1500);
+  }, 1900);
 }
 
 async function initializeStudentProgress(player) {
@@ -374,6 +504,7 @@ async function recordProgressAttempt(isCorrect, extra = {}, options = {}) {
     session_pin: currentPin,
     set_id: currentQuestionObject?.setId || '',
     question_id: questionId,
+    question_data: qData,
     topic,
     mechanism: currentMechanism,
     is_correct: Boolean(isCorrect),
@@ -534,13 +665,18 @@ async function markStudentProgressCompleted() {
 }
 
 function finishGame() {
+  stopCurrentMechanism();
+  updateMissionProgress(compiledQuestions.length);
+  playGameSound('complete');
   markStudentProgressCompleted();
   mechanismContainer.innerHTML = `
     <div style="text-align: center; padding: 30px; background: #0f172a; border-radius: 12px; border: 1px solid #1e293b;">
-      <h1 style="color: #10b981;">🎉 GAME COMPLETED!</h1>
-      <p style="font-size: 20px; color: #cbd5e1; margin-top: 10px;">Markah Akhir: <strong style="color: #38bdf8;">${userScore} PTS</strong></p>
-      <button onclick="window.location.href='student-dashboard.html'" class="btn btn-primary" style="margin-top: 20px; padding: 10px 24px; cursor: pointer;">Dashboard</button>
+      <h1 style="color: #10b981;">🎉 MISSION COMPLETE!</h1>
+      <p style="font-size: 20px; color: #cbd5e1; margin-top: 10px;">Final score: <strong style="color: #38bdf8;">${userScore} PTS</strong></p>
+      <p style="font-size: 14px; color: #94a3b8; margin-top: 8px;">Best streak: ${maxStreak} ${maxStreak === 1 ? 'answer' : 'answers'}</p>
+      <p style="font-size: 15px; color: #a7f3d0; margin-top: 16px;">Every challenge makes you a stronger coder. Ready for another run?</p>
+      <button onclick="window.location.href='student-dashboard.html'" class="btn btn-primary" style="margin-top: 20px; padding: 10px 24px; cursor: pointer;">Back to Dashboard</button>
     </div>
   `;
-  feedbackBox.style.display = 'none';
+  clearFeedback();
 }

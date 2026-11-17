@@ -1,3 +1,5 @@
+import { playGameSound } from "../game-audio.js";
+
 export function renderBugSniper(container, qData, onSubmit) {
   const snippet = qData.code_snippet || "";
   const targetLine = qData.bug_line || 1;
@@ -7,7 +9,7 @@ export function renderBugSniper(container, qData, onSubmit) {
 
   let html = `
     <div style="max-width: 550px; margin: 0 auto; text-align: left;">
-      <p style="font-size: 13px; color: #94a3b8; margin-bottom: 8px;">Klik pada baris kod yang mengandungi ralat (Bug):</p>
+      <p style="font-size: 13px; color: #94a3b8; margin-bottom: 8px;">Select the line containing the bug:</p>
       
       <div class="code-editor-box" style="background: #030712; border: 1px solid #1f2937; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 13px; margin-bottom: 16px;">
   `;
@@ -15,23 +17,22 @@ export function renderBugSniper(container, qData, onSubmit) {
   lines.forEach((lineText, index) => {
     const lineNum = index + 1;
     html += `
-      <div class="code-line" data-line="${lineNum}" style="padding: 4px 8px; border-radius: 4px; cursor: pointer; display: flex; gap: 12px;">
+      <button type="button" class="code-line" data-line="${lineNum}" aria-pressed="false" style="width: 100%; padding: 4px 8px; border: 0; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; display: flex; gap: 12px; text-align: left; font: inherit;">
         <span style="color: #475569; width: 20px; text-align: right; user-select: none;">${lineNum}</span>
         <span style="color: #f8fafc;">${lineText}</span>
-      </div>
+      </button>
     `;
   });
 
   html += `
       </div>
 
-      <!-- INPUT FIX APABILA LINE DIPILIH -->
       <div id="fixArea" style="display: none; margin-bottom: 16px;">
-        <label style="font-size: 12px; color: #38bdf8; display: block; margin-bottom: 4px;">Masukkan pembetulan kod untuk Baris <span id="selectedLineNum"></span>:</label>
-        <input type="text" id="fixInput" placeholder="Taip kod pembetulan di sini..." style="width: 100%; padding: 8px 12px; background: #1e293b; color: #fff; border: 1px solid #334155; border-radius: 6px; outline: none; font-family: monospace;">
+        <label for="fixInput" style="font-size: 12px; color: #38bdf8; display: block; margin-bottom: 4px;">Enter the fix for line <span id="selectedLineNum"></span>:</label>
+        <input type="text" id="fixInput" placeholder="Type the corrected code..." style="width: 100%; padding: 8px 12px; background: #1e293b; color: #fff; border: 1px solid #334155; border-radius: 6px; outline: none; font-family: monospace;">
       </div>
 
-      <button id="submitBugBtn" class="btn btn-primary" style="width: 100%; padding: 10px;" disabled>Tembak Bug!</button>
+      <button id="submitBugBtn" class="btn btn-primary" type="button" style="width: 100%; padding: 10px;" disabled>Fix the Bug!</button>
     </div>
   `;
 
@@ -43,16 +44,20 @@ export function renderBugSniper(container, qData, onSubmit) {
   const fixInput = container.querySelector('#fixInput');
   const submitBtn = container.querySelector('#submitBugBtn');
 
-  // Highlight line bila diklik
   container.querySelectorAll('.code-line').forEach(lineEl => {
     lineEl.onclick = () => {
-      container.querySelectorAll('.code-line').forEach(l => l.style.background = 'transparent');
+      container.querySelectorAll('.code-line').forEach(l => {
+        l.style.background = 'transparent';
+        l.setAttribute('aria-pressed', 'false');
+      });
       lineEl.style.background = '#374151';
+      lineEl.setAttribute('aria-pressed', 'true');
       
       selectedLine = parseInt(lineEl.getAttribute('data-line'));
       selectedLineNum.textContent = selectedLine;
       fixArea.style.display = 'block';
       submitBtn.disabled = false;
+      playGameSound('select');
     };
   });
 

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MazeProg - Student Profile</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/student-sidebar.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
     body { background: #090d16; color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
@@ -35,9 +36,6 @@
     .btn-save { width: 100%; background: #10b981; border: none; padding: 12px; color: #fff; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 14px; margin-top: 10px; }
     .btn-save:hover { background: #059669; }
     
-    .btn-back { width: 100%; background: transparent; border: 1px solid #374151; padding: 10px; color: #9ca3af; font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 13px; margin-top: 8px; }
-    .btn-back:hover { background: #1f2937; color: #fff; }
-
     .btn-logout { width: 100%; background: #ef4444; border: none; padding: 10px; color: #fff; font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 13px; margin-top: 12px; }
     .btn-logout:hover { background: #dc2626; }
   </style>
@@ -45,14 +43,13 @@
 <body>
 
   <div class="profile-card">
-    <a class="site-brand site-brand--compact" href="student-dashboard.html" aria-label="MazeProg student dashboard"><img src="assets/mazeprog-logo.png" alt="MazeProg"></a>
     <h2 class="header-title">Student Profile</h2>
 
     <!-- Avatar Drag and Drop Zone -->
-    <div class="avatar-wrapper" id="avatarDropZone" title="Klik atau seret gambar ke sini">
+    <div class="avatar-wrapper" id="avatarDropZone" title="Click or drag an image here">
       <img id="profilePreview" class="avatar-img" src="https://via.placeholder.com/120" alt="Avatar Preview">
       <div class="avatar-overlay">
-        <span>📷 Klik / Drag Gambar</span>
+        <span>📷 Click or drag an image</span>
       </div>
       <!-- Hidden File Input -->
       <input type="file" id="fileInput" accept="image/*" style="display: none;">
@@ -62,12 +59,12 @@
       <div class="form-grid">
         <div class="form-group">
           <label for="nameInput">Full Name</label>
-          <input type="text" id="nameInput" class="form-control" required placeholder="Memuatkan...">
+          <input type="text" id="nameInput" class="form-control" required placeholder="Enter your name">
         </div>
 
         <div class="form-group">
           <label for="emailInput">Email (Read-only)</label>
-          <input type="email" id="emailInput" class="form-control" disabled placeholder="Memuatkan...">
+          <input type="email" id="emailInput" class="form-control" disabled placeholder="Email address">
         </div>
 
         <div class="form-group">
@@ -94,10 +91,10 @@
       <button type="submit" class="btn-save">Save Profile Changes</button>
     </form>
 
-    <button id="backBtn" class="btn-back">Back to Dashboard</button>
     <button id="logoutBtn" class="btn-logout">Log Out</button>
   </div>
 
   <script type="module" src="js/student-profile.js"></script>
+  <script src="js/student-sidebar.js"></script>
 </body>
 </html>

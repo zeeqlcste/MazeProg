@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MazeProg - Student Dashboard</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/student-sidebar.css">
   <style>
-    /* Styling Nav Profil Pelajar */
+    .student-dashboard { max-width: 1380px; margin: 0 auto; }
     .profile-nav-btn {
       display: flex;
       align-items: center;
@@ -34,61 +35,135 @@
       font-size: 14px;
       font-weight: 600;
     }
-    .learning-section { margin-top: 24px; display: grid; gap: 18px; }
+    .student-welcome { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 22px; }
+    .student-welcome h1 { margin: 0 0 6px; font-size: clamp(26px, 3vw, 36px); }
+    .student-welcome p { max-width: 680px; color: #94a3b8; line-height: 1.6; }
+    .student-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0 0 24px; }
+    .student-summary-card { min-height: 106px; padding: 17px; border: 1px solid #334155; border-radius: 12px; background: linear-gradient(145deg, rgba(30, 41, 59, .94), rgba(17, 24, 39, .9)); }
+    .student-summary-card span { display: block; color: #94a3b8; font-size: 12px; }
+    .student-summary-card strong { display: block; margin-top: 7px; color: #f8fafc; font-size: 25px; }
+    .student-actions { margin-bottom: 24px; }
+    .student-actions .dash-card { scroll-margin-top: 24px; }
+    .student-actions .dash-card p { min-height: 42px; color: #cbd5e1; line-height: 1.55; }
+    .recommended-practice { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; padding: 19px 21px; border: 1px solid rgba(56, 189, 248, .3); border-radius: 12px; background: linear-gradient(110deg, rgba(14, 165, 233, .12), rgba(17, 24, 39, .8)); scroll-margin-top: 24px; }
+    .recommended-practice h2 { margin: 0 0 5px; font-size: 17px; }
+    .recommended-practice p { margin: 0; color: #94a3b8; font-size: 13px; line-height: 1.5; }
+    .student-learning-section { margin-top: 24px; display: grid; gap: 18px; scroll-margin-top: 24px; }
     .learning-panel { padding: 18px 0; border-top: 1px solid #334155; }
-    .learning-panel h3 { margin: 0 0 12px; }
-    .topic-mastery-list, .practice-assignment-list { display: grid; gap: 8px; }
-    .topic-mastery-row, .practice-assignment-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 12px; background: #111827; border: 1px solid #334155; border-radius: 6px; }
+    .learning-panel h2 { margin: 0 0 5px; font-size: 19px; }
+    .learning-panel > p { margin: 0 0 13px; color: #94a3b8; font-size: 13px; }
+    .topic-mastery-list, .question-history-list { display: grid; gap: 10px; }
+    .topic-mastery-row, .question-history-card, .history-session-card { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 14px; background: #111827; border: 1px solid #334155; border-radius: 8px; }
     .mastery-state { color: #bae6fd; font-size: 12px; }
-    .practice-evidence { color: #94a3b8; font-size: 12px; margin-top: 4px; }
-    @media (max-width: 640px) { .learning-panel { padding: 16px 0; } }
+    .progress-tabs { display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid #334155; }
+    .progress-tab { padding: 10px 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #94a3b8; font: inherit; font-weight: 700; cursor: pointer; }
+    .progress-tab[aria-selected="true"] { border-bottom-color: #38bdf8; color: #f8fafc; }
+    .progress-tab:focus-visible, .question-history-card button:focus-visible { outline: 2px solid #38bdf8; outline-offset: 3px; }
+    .history-details { flex: 1; min-width: min(100%, 260px); }
+    .history-session-details { display: grid; flex-basis: 100%; gap: 10px; padding-top: 12px; border-top: 1px solid #334155; }
+    .history-session-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .history-session-heading h3 { margin: 0; font-size: 15px; }
+    .history-session-summary { margin: 5px 0 0; color: #94a3b8; font-size: 12px; line-height: 1.5; }
+    .history-question-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px; background: #0b1329; border: 1px solid #334155; border-radius: 7px; }
+    .history-question { margin: 6px 0; color: #e2e8f0; line-height: 1.5; }
+    .history-meta { margin: 0; color: #94a3b8; font-size: 12px; line-height: 1.5; }
+    .history-result { display: inline-block; margin-top: 8px; padding: 3px 8px; border-radius: 999px; background: rgba(52, 211, 153, .12); color: #6ee7b7; font-size: 11px; font-weight: 700; }
+    .history-result.needs-review { background: rgba(251, 191, 36, .12); color: #fcd34d; }
+    .history-code { overflow-x: auto; margin: 8px 0; padding: 10px; border-radius: 6px; background: #030712; color: #bae6fd; font-size: 12px; white-space: pre-wrap; }
+    .history-revision { flex-basis: 100%; padding: 16px; border: 1px solid #334155; border-radius: 8px; background: #0b1329; }
+    .history-revision-feedback { min-height: 22px; margin: 10px 0; color: #fcd34d; font-size: 13px; font-weight: 600; }
+    .history-revision-feedback.correct { color: #6ee7b7; }
+    .history-revision-feedback.incorrect { color: #fca5a5; }
+    .history-revision-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .history-revision-actions button { min-height: 40px; }
+    .history-revision .mcq-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .history-revision .mcq-option-btn { display: flex; align-items: center; gap: 10px; padding: 12px; border: 2px solid #374151; border-radius: 10px; background: #1f2937; color: #fff; cursor: pointer; text-align: left; }
+    .history-revision .mcq-option-btn.is-correct { border-color: #10b981; background: #064e3b; }
+    .history-revision .mcq-option-btn.is-incorrect { border-color: #ef4444; background: #7f1d1d; }
+    .history-revision .drag-item, .history-revision .drag-block { color: #fff; }
+    .history-revision .drag-item { margin-bottom: 6px; }
+    .history-revision .code-line { font-family: monospace; }
+    .student-dashboard .empty-state-link { color: #7dd3fc; text-decoration: none; font-weight: 600; }
+    .student-dashboard .empty-state-link:hover { text-decoration: underline; }
+    @media (max-width: 760px) {
+      .student-summary { grid-template-columns: 1fr; gap: 9px; }
+      .student-summary-card { min-height: 84px; padding: 14px 16px; }
+      .student-summary-card strong { font-size: 22px; }
+    }
+    @media (max-width: 640px) {
+      .learning-panel { padding: 16px 0; }
+      .student-welcome { align-items: flex-start; }
+      .student-welcome h1 { font-size: 27px; }
+      .history-revision .mcq-options-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
   <nav class="navbar">
-    <a class="site-brand" href="student-dashboard.html" aria-label="MazeProg student dashboard"><img src="assets/mazeprog-logo.png" alt="MazeProg"></a>
-    
-    <!-- Profil Pelajar: Memaparkan Nama User & Avatar -->
-    <div id="profileBtn" class="profile-nav-btn" title="Klik untuk lihat & kemaskini profil">
-      <img id="userAvatar" src="https://via.placeholder.com/32" alt="Profile" class="profile-avatar-img">
-      <span id="userNameDisplay" class="profile-name-text">...</span>
-    </div>
+    <button id="profileBtn" class="profile-nav-btn" type="button" title="View and edit your profile">
+      <img id="userAvatar" alt="Student profile photo" class="profile-avatar-img" hidden>
+      <span id="userNameDisplay" class="profile-name-text">Student</span>
+    </button>
   </nav>
 
-  <div class="dashboard-layout">
-    <div class="dashboard-header">
-      <h2>Welcome to Student Dashboard</h2>
-    </div>
+  <main class="dashboard-layout student-dashboard">
+    <header class="student-welcome">
+      <div>
+        <h1 id="studentWelcomeTitle">Welcome back</h1>
+        <p>Your learning space is ready. Join a class, practice a topic, or explore a short lesson to keep building your programming skills.</p>
+      </div>
+    </header>
 
-    <div class="card-grid">
-      <div class="dash-card">
-        <h3>Join Class Session</h3>
-        <p>Enter the Session PIN provided by your lecturer to join a live maze challenge.</p>
-        <br>
-        <input type="text" id="sessionPinInput" placeholder="Session PIN (e.g., 123456)" style="width:100%; padding: 0.5rem; margin-bottom:0.5rem; background:#0f172a; color:white; border:1px solid #334155; border-radius:4px;">
-        <button id="joinSessionBtn" class="btn btn-primary" style="width: 100%;">Join Session</button>
+    <section class="student-summary" aria-label="Learning summary" aria-live="polite">
+      <div class="student-summary-card"><span>Topics explored</span><strong id="topicsPracticed">—</strong></div>
+      <div class="student-summary-card"><span>Overall accuracy</span><strong id="averageAccuracy">—</strong></div>
+    </section>
+
+    <div class="card-grid student-actions">
+      <div class="dash-card" id="join-class">
+        <h3>Join a class session</h3>
+        <p>Enter the session PIN from your lecturer to join a live MazeProg challenge.</p>
+        <label for="sessionPinInput" style="display:block; color:#94a3b8; font-size:12px; margin-bottom:6px;">Session PIN</label>
+        <input type="text" id="sessionPinInput" inputmode="numeric" autocomplete="one-time-code" placeholder="Enter your session PIN" aria-label="Session PIN" style="width:100%; padding:0.65rem; margin-bottom:0.6rem; background:#0f172a; color:white; border:1px solid #334155; border-radius:6px;">
+        <button id="joinSessionBtn" class="btn btn-primary" type="button" style="width: 100%;">Join session</button>
       </div>
 
       <div class="dash-card">
-        <h3>Solo Practice Mode</h3>
-        <p>Select a programming topic and level to sharpen your logic skills independently.</p>
-        <br>
-        <button id="startSoloPractice" class="btn btn-outline" style="width: 100%;">Start Practice</button>
+        <h3>Learn C++ step by step</h3>
+        <p>Explore a guided course on syntax, data types, operators, and control structures. Learn one concept at a time with examples and quick checks.</p>
+        <a class="btn btn-outline" href="student-learn.html" style="width: 100%; text-align:center;">Continue learning</a>
       </div>
     </div>
 
-    <section class="learning-section" aria-live="polite">
-      <div class="learning-panel">
-        <h3>My C++ topic progress</h3>
-        <div id="topicMasteryList" class="topic-mastery-list"><p>Loading topic progress...</p></div>
+    <section class="recommended-practice" aria-live="polite">
+      <div>
+        <h2 id="recommendedHeading">Your next step</h2>
+        <p id="recommendedReason">Complete a few practice questions to get a helpful topic recommendation here.</p>
       </div>
+      <a id="recommendedPracticeBtn" class="btn btn-primary" href="student-learn.html">Explore C++ lessons</a>
+    </section>
+
+    <section id="my-progress" class="student-learning-section" aria-live="polite">
       <div class="learning-panel">
-        <h3>Lecturer-assigned practice</h3>
-        <div id="practiceAssignmentList" class="practice-assignment-list"><p>Loading assigned practice...</p></div>
+        <div class="progress-tabs" role="tablist" aria-label="Progress views">
+          <button id="topicProgressTab" class="progress-tab" type="button" role="tab" aria-selected="true" aria-controls="topicProgressPanel">Topic Progress</button>
+          <button id="questionHistoryTab" class="progress-tab" type="button" role="tab" aria-selected="false" aria-controls="questionHistoryPanel" tabindex="-1">Question History</button>
+        </div>
+        <section id="topicProgressPanel" role="tabpanel" aria-labelledby="topicProgressTab">
+          <h2>My topic progress</h2>
+          <p>See what you have been practising and which topics may need another look.</p>
+          <div id="topicMasteryList" class="topic-mastery-list"><p>Loading your topic progress...</p></div>
+        </section>
+        <section id="questionHistoryPanel" role="tabpanel" aria-labelledby="questionHistoryTab" hidden>
+          <h2>Question history</h2>
+          <p>Choose a session to see its questions and revise your answers.</p>
+          <div id="questionHistoryList" class="question-history-list"><p>Loading your question history...</p></div>
+        </section>
       </div>
     </section>
-  </div>
+  </main>
 
   <script type="module" src="js/student-dashboard.js"></script>
+  <script src="js/student-sidebar.js"></script>
 </body>
 </html>

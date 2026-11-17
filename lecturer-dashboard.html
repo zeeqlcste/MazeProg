@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MazeProg - Lecturer Dashboard</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/lecturer-sidebar.css">
   <style>
     .progress-overview { margin-top: 24px; padding: 20px; border-top: 1px solid #334155; }
     .progress-overview-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -27,7 +28,6 @@
 </head>
 <body>
   <nav class="navbar">
-    <a class="site-brand" href="lecturer-dashboard.html" aria-label="MazeProg lecturer dashboard"><img src="assets/mazeprog-logo.png" alt="MazeProg"></a>
     <button id="profileBtn" class="profile-nav-btn" type="button" title="View and edit lecturer profile">
       <img id="lecturerAvatar" class="profile-avatar-img" alt="Lecturer profile photo" hidden>
       <span id="lecturerAvatarFallback" class="profile-avatar-fallback">L</span>
@@ -82,5 +82,6 @@
 
   <script type="module" src="js/auth.js"></script>
   <script type="module" src="js/lecturer-dashboard.js"></script>
+  <script src="js/lecturer-sidebar.js"></script>
 </body>
 </html>
