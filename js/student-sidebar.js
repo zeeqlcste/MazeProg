@@ -24,6 +24,12 @@ const navigationItems = [
     icon: '<path d="M4 19V5m0 14h17"></path><path d="m7 15 4-4 3 2 5-6"></path><path d="M16 7h3v3"></path>'
   },
   {
+    label: 'Question history',
+    href: 'student-dashboard.html#question-history',
+    match: (page, hash) => page === 'student-dashboard.html' && hash === '#question-history',
+    icon: '<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>'
+  },
+  {
     label: 'Profile',
     href: 'student-profile.html',
     match: (page) => page === 'student-profile.html',
@@ -32,7 +38,6 @@ const navigationItems = [
 ];
 
 const currentPage = window.location.pathname.split('/').pop() || 'student-dashboard.html';
-const currentHash = window.location.hash;
 const studentSidebarStorageKey = 'mazeprog-student-sidebar-collapsed';
 
 document.body.classList.add('has-student-sidebar');
@@ -75,6 +80,7 @@ sectionLabel.textContent = 'Learning space';
 
 const nav = document.createElement('nav');
 nav.className = 'student-sidebar__nav';
+const navigationLinks = [];
 
 navigationItems.forEach((item) => {
   const link = document.createElement('a');
@@ -82,13 +88,22 @@ navigationItems.forEach((item) => {
   link.href = item.href;
   link.title = item.label;
   link.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${item.icon}</svg><span>${item.label}</span>`;
-
-  if (item.match(currentPage, currentHash)) {
-    link.setAttribute('aria-current', 'page');
-  }
-
+  navigationLinks.push(link);
   nav.append(link);
 });
+
+function updateCurrentNavigation() {
+  navigationItems.forEach((item, index) => {
+    if (item.match(currentPage, window.location.hash)) {
+      navigationLinks[index].setAttribute('aria-current', 'page');
+    } else {
+      navigationLinks[index].removeAttribute('aria-current');
+    }
+  });
+}
+
+updateCurrentNavigation();
+window.addEventListener('hashchange', updateCurrentNavigation);
 
 const footer = document.createElement('div');
 footer.className = 'student-sidebar__footer';

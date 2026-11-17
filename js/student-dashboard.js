@@ -14,7 +14,7 @@ const userNameDisplay = document.getElementById('userNameDisplay');
 const topicMasteryList = document.getElementById('topicMasteryList');
 const questionHistoryList = document.getElementById('questionHistoryList');
 const topicProgressTab = document.getElementById('topicProgressTab');
-const questionHistoryTab = document.getElementById('questionHistoryTab');
+const questionHistoryTab = document.getElementById('question-history');
 const topicProgressPanel = document.getElementById('topicProgressPanel');
 const questionHistoryPanel = document.getElementById('questionHistoryPanel');
 const welcomeTitle = document.getElementById('studentWelcomeTitle');
@@ -105,7 +105,7 @@ if (joinSessionBtn) {
 
 if (topicProgressTab && questionHistoryTab) {
   const progressTabs = [topicProgressTab, questionHistoryTab];
-  const selectProgressTab = (selectedTab) => {
+  const selectProgressTab = (selectedTab, updateHash = false) => {
     const showHistory = selectedTab === questionHistoryTab;
     topicProgressTab.setAttribute('aria-selected', String(!showHistory));
     topicProgressTab.tabIndex = showHistory ? -1 : 0;
@@ -113,10 +113,25 @@ if (topicProgressTab && questionHistoryTab) {
     questionHistoryTab.tabIndex = showHistory ? 0 : -1;
     topicProgressPanel.hidden = showHistory;
     questionHistoryPanel.hidden = !showHistory;
+    if (updateHash) {
+      window.location.hash = showHistory ? '#question-history' : '#my-progress';
+    }
   };
 
+  if (window.location.hash === '#question-history') {
+    selectProgressTab(questionHistoryTab);
+  }
+
+  window.addEventListener('hashchange', () => {
+    if (window.location.hash === '#question-history') {
+      selectProgressTab(questionHistoryTab);
+    } else if (window.location.hash === '#my-progress') {
+      selectProgressTab(topicProgressTab);
+    }
+  });
+
   progressTabs.forEach((tab) => {
-    tab.addEventListener('click', () => selectProgressTab(tab));
+    tab.addEventListener('click', () => selectProgressTab(tab, true));
     tab.addEventListener('keydown', (event) => {
       if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
       event.preventDefault();
@@ -125,7 +140,7 @@ if (topicProgressTab && questionHistoryTab) {
         : event.key === 'End' ? progressTabs.length - 1
           : (selectedIndex + (event.key === 'ArrowRight' ? 1 : -1) + progressTabs.length) % progressTabs.length;
       progressTabs[nextIndex].focus();
-      selectProgressTab(progressTabs[nextIndex]);
+      selectProgressTab(progressTabs[nextIndex], true);
     });
   });
 }
